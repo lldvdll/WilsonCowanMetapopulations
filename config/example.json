@@ -1,0 +1,24 @@
+
+{
+    "network_type": "ring",
+    "network_params": {
+        "N": 50,
+        "p": 0.2
+    },
+
+    "delays": "None",
+    "coupling": "None",
+
+    "simulation": {
+        "T": 1000,
+        "dt": 0.1,
+        "n_runs": 10
+    },
+
+    "model": {
+        "name": "wilson_cowan",
+        "params": {
+            "a": 1
+    }
+}
+
