@@ -31,17 +31,14 @@ class Model:
         self.trajectories = np.arange(self.C, N)
         
     def run(self):
-        # TODO: Implement the DDE solver
+        # TODO: Implement the DDE solver and call wilson_cowan
         
+        # Dummy simulation just generates random sine waves
         N = self.network.N 
         C = self.C
         T = len(self.time_array)
-        
-        # Create random frequencies and phases for each of the 10 nodes
         freqs = np.random.uniform(0.001, 0.01, (C, N, 1))
         phases = np.random.uniform(0, 2 * np.pi, (C, N, 1))
-        
-        # Generate the sine waves. Shape will be (N, T)
         self.trajectories = np.sin(2 * np.pi * freqs * self.time_array + phases)
     
     def wilson_cowan(self, state, params=None):
