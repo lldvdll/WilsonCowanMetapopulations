@@ -1,3 +1,14 @@
+"""
+Example usage of main class Metapopulation
+    - Instantiates class
+    - Loads example config file
+    - Creates network using config file parameter
+    - Initialises the model using config file parameters
+    - Runs simulation - 1000ms, 0.1ms timestep
+    - Plots trajectories
+
+"""
+
 
 from metapopulation import Metapopulation
         
