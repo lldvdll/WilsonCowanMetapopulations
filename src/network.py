@@ -30,9 +30,17 @@ class Network:
             Assumes constant signal velocity
             Assumes constant node distance
             Derives distances from network structure"""
+            
+        # Intra node-delays
         d = self.config["node_distance"]
         v = self.config["signal_velocity"]
-        return self.A * (d / v)
+        D = self.A * (d / v)
+        
+        # Inter node delays
+        delay = self.config["self_delay"]
+        np.fill_diagonal(D, delay)
+        
+        return D
     
     def make_network(self):
         topology = self.config["topology"]
