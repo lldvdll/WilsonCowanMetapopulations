@@ -27,7 +27,7 @@
 
 ```pip install -r requirements.txt```
 
-- Run file metapopulation.py for example
+- Run file example.py for example
 
 ```
 model = Metapopulation()  # Initialise the model
