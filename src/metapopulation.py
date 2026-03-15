@@ -79,6 +79,7 @@ class Metapopulation():
         plt.show()      
          
         
+# Example run
 model = Metapopulation()
 model.load_config("config/example.yaml")
 model.create_network()
