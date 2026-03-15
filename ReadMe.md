@@ -20,7 +20,13 @@
 
 ## Setup
 - Create virtual environment
+
+```python -m venv .venv```
+
 - Install packages from requirements.txt
+
+```pip install -r requirements.txt```
+
 - Run file metapopulation.py for example
 
 ```
