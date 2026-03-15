@@ -1,10 +1,8 @@
 """
 Excitation Inhibition Models
     - Wilson-Cowan model
+    -
     
-Add a model by creating a function. It should follow this structure:
-    - Arguments: 
-    - Returns:
 """
 
 import numpy as np
