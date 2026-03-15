@@ -7,6 +7,7 @@ Class to generate a network with velocity/distance based delays
 """
 import networkx as nx
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Network:
     def __init__(self, config):
@@ -34,7 +35,7 @@ class Network:
         return self.A * (d / v)
     
     def make_network(self):
-        topology = self.config["network_topology"]
+        topology = self.config["topology"]
         if topology == "line":
             return self.make_line_network()
         elif topology == "lattice":
@@ -80,3 +81,17 @@ class Network:
         k = int(p * self.N)
         k = max(2, k) 
         return nx.watts_strogatz_graph(self.N, k, rewire_prob)
+    
+    def plot_network_matrix(self, mode="Adjacency"):
+        if mode == "Adjacency":
+            matrix = self.A
+        elif mode == "Delay":
+            matrix = self.D
+        else:
+            raise ValueError(f"Mode {mode} not recognised")
+        plt.imshow(matrix)
+        plt.title(f"{mode} Matrix")
+        plt.xlabel("Node Index")
+        plt.ylabel("Node Index")
+        plt.tight_layout()
+        plt.show()
