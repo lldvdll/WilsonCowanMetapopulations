@@ -38,3 +38,7 @@ model.initialise_model()  # Set up the wilson-cowan model (not yet implemented) 
 model.run_simulation(duration=1000, dt=0.1)  # Run the simulation - generates trajectories
 model.plot_trajectories()  # Plot the Excitatory (blue) and Inhibitory (black) trajectories for each node
 ```
+
+## Reporting
+
+- Link: https://www.overleaf.com/8621396969mrhntkbkqvxb#fa30fc
