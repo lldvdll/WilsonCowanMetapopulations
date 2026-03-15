@@ -1,8 +1,11 @@
 """
 
 Metapopulation class
-    - a network of coupled DDE nodes
-
+    - Models a network of coupled DDE nodes
+    - Create network ,each node corresponds to a neural population (create_network)
+    - Set model and parameters, e.g. Wilson-Cowan (initialise_model)
+    - Run model simulation to calculate node trajectories (run_simulation)
+    - Simple plot all trajectories function, replicates figure 4. plots (plot_trajectories)
 """
 
 import yaml
