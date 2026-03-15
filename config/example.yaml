@@ -1,35 +1,26 @@
 ---
-network:
+model_params:
+  mode: "wilson_cowan"  # Model to use
+  c_ee: 1  # Inter-node E to E coupling (Synaptic weights)
+  c_ei: 1  # Intra-node E to I coupling (Synaptic weights)
+  c_ie: -1  # Intra-node I to E coupling (Synaptic weights)
+  c_ii: -1  # Inter-node I to I coupling (Synaptic weights)
+  tau_ie: 1  # Intra-node I to E delay
+  tau_ei: 1.4  # Intra-node E to I delay
+  rho_ie: 10  # Inter-node I to E delay
+  rho_ei: 10  # Inter-node E to I delay
+  beta: 10  # 
+  alpha: 0.6  # relative node-dependent dimensionless timescale between the two subpopulations
+  P: 0.5  # external stimuli acting on each excitatory subpopulation
+  Q: 0.5  # external stimuli acting on each inhibitory subpopulation
+  T_e: 1  # global temporal conversion factor
+  T_i: 1  #global temporal conversion factor
+
+
+network_params:
   topology: ring  # line, lattice, ring, full, smallworld
   self_delay: 0.25  # inter-node delay
   node_distance: 1  # intra-node distance
   signal_velocity: 2  # intra-node velocity
-  N: 50  # Number of network nodes
+  N: 6  # Number of network nodes
   p: 0.2  # For ring network, proportion of neighbours
-
-
-delay: 
-  type: constant  # constant, distribution, geometric
-  distribution: uniform  # uniform, normal
-  mean: 0  # for normal
-  std: 1  # for normal
-  min: 1  # for uniform
-  max: 10  # for uniform
-
-
-coupling:
-  type: constant
-  value: 1
-  distribution: None
-
-simulation:
-  duration: 1000
-  dt: 0.1
-  n_runs: 10
-
-model:
-  name: wilson_cowan
-  params:
-    a: 1
-
-

@@ -18,29 +18,11 @@ class Network:
         # Generate network
         self.network = self.make_network()
         self.A = self.get_adjacency_matrix()
-        self.D = self.get_delay_matrix()
         
     def get_adjacency_matrix(self):
         """ Creates NxN connectivity matrix from networkx graph"""
         A = nx.to_numpy_array(self.network)
         return A
-    
-    def get_delay_matrix(self):
-        """ Create an NxN matrix of delays between nodes
-            Assumes constant signal velocity
-            Assumes constant node distance
-            Derives distances from network structure"""
-            
-        # Intra node-delays
-        d = self.config["node_distance"]
-        v = self.config["signal_velocity"]
-        D = self.A * (d / v)
-        
-        # Inter node delays
-        delay = self.config["self_delay"]
-        np.fill_diagonal(D, delay)
-        
-        return D
     
     def make_network(self):
         topology = self.config["topology"]
@@ -90,15 +72,9 @@ class Network:
         k = max(2, k) 
         return nx.watts_strogatz_graph(self.N, k, rewire_prob)
     
-    def plot_network_matrix(self, mode="Adjacency"):
-        if mode == "Adjacency":
-            matrix = self.A
-        elif mode == "Delay":
-            matrix = self.D
-        else:
-            raise ValueError(f"Mode {mode} not recognised")
-        plt.imshow(matrix)
-        plt.title(f"{mode} Matrix")
+    def plot_adjacency_matrix(self):
+        plt.imshow(self.A)
+        plt.title(f"Adjacency Matrix")
         plt.xlabel("Node Index")
         plt.ylabel("Node Index")
         plt.tight_layout()
