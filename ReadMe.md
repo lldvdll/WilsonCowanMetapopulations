@@ -1,6 +1,7 @@
 # The role of network structure and time delay in a metapopulation Wilson–Cowan model, Conti and Van Gorder, 2019
 
 ## Directory structure
+- config: configuration files for the Metapopulation class
 - data: a place for data to live
 - ref: any references, notes, etc
 - scrap: a messy playground
