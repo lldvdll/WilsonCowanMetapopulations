@@ -1,0 +1,2236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project 2 Guide: From Wilson-Cowan to Next Generation Neural Mass Models</title>
+<style>
+  :root {
+    --primary: #1a1a2e;
+    --secondary: #16213e;
+    --accent: #0f3460;
+    --highlight: #e94560;
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #2d3436;
+    --text-light: #636e72;
+    --border: #dfe6e9;
+    --code-bg: #f1f3f5;
+    --simple-bg: #e8f5e9;
+    --academic-bg: #e3f2fd;
+    --eq-bg: #fff8e1;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  .hero {
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    color: white;
+    padding: 40px 30px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 1.8em; margin-bottom: 10px; }
+  .hero p { opacity: 0.9; font-size: 1.05em; max-width: 800px; margin: 0 auto; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 20px; }
+
+  .nav-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--secondary);
+    padding: 10px 20px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .nav-bar a {
+    color: white; text-decoration: none;
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 0.85em; font-weight: 500;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.2s;
+  }
+  .nav-bar a:hover { background: var(--highlight); }
+
+  .toggle-mode {
+    position: fixed; bottom: 20px; right: 20px; z-index: 200;
+    display: flex; gap: 6px;
+  }
+  .toggle-mode button {
+    padding: 10px 16px; border: none; border-radius: 25px;
+    font-size: 0.85em; cursor: pointer; font-weight: 600;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+  }
+  .toggle-mode button:hover { transform: translateY(-2px); }
+  .btn-simple { background: #4caf50; color: white; }
+  .btn-academic { background: #1976d2; color: white; }
+  .btn-both { background: var(--primary); color: white; }
+
+  .section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 18px 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    user-select: none;
+    transition: background 0.2s;
+  }
+  .section-header:hover { background: rgba(0,0,0,0.02); }
+  .section-header h2 {
+    flex: 1; font-size: 1.2em; color: var(--primary);
+  }
+  .section-header .arrow {
+    font-size: 1.2em; transition: transform 0.3s;
+    color: var(--text-light);
+  }
+  .section-header .arrow.open { transform: rotate(90deg); }
+  .section-header .badge {
+    font-size: 0.7em; padding: 3px 10px;
+    border-radius: 12px; font-weight: 600;
+  }
+  .badge-paper { background: #e3f2fd; color: #1565c0; }
+  .badge-model { background: #fce4ec; color: #c62828; }
+  .badge-notes { background: #f3e5f5; color: #6a1b9a; }
+  .badge-plan { background: #e8f5e9; color: #2e7d32; }
+
+  .section-body {
+    padding: 0 24px 20px;
+    display: none;
+  }
+  .section-body.open { display: block; }
+
+  .subsection {
+    border-left: 3px solid var(--accent);
+    margin: 12px 0;
+    border-radius: 0 8px 8px 0;
+    overflow: hidden;
+  }
+  .subsection-header {
+    padding: 12px 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(15,52,96,0.03);
+    transition: background 0.2s;
+  }
+  .subsection-header:hover { background: rgba(15,52,96,0.07); }
+  .subsection-header h3 { flex: 1; font-size: 1.05em; color: var(--accent); }
+  .subsection-header .arrow { font-size: 1em; color: var(--text-light); transition: transform 0.3s; }
+  .subsection-header .arrow.open { transform: rotate(90deg); }
+
+  .subsection-body {
+    padding: 0 18px 14px;
+    display: none;
+  }
+  .subsection-body.open { display: block; }
+
+  .explanation {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 10px 0;
+    line-height: 1.8;
+  }
+  .simple {
+    background: var(--simple-bg);
+    border-left: 4px solid #4caf50;
+  }
+  .simple::before {
+    content: "Plain English";
+    display: inline-block;
+    font-size: 0.75em; font-weight: 700; color: #2e7d32;
+    background: rgba(46,125,50,0.12);
+    padding: 2px 8px; border-radius: 4px;
+    margin-bottom: 6px;
+  }
+  .academic {
+    background: var(--academic-bg);
+    border-left: 4px solid #1976d2;
+  }
+  .academic::before {
+    content: "Academic";
+    display: inline-block;
+    font-size: 0.75em; font-weight: 700; color: #1565c0;
+    background: rgba(21,101,192,0.12);
+    padding: 2px 8px; border-radius: 4px;
+    margin-bottom: 6px;
+  }
+
+  .equation-box {
+    background: var(--eq-bg);
+    border: 1px solid #ffe082;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 10px 0;
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    font-size: 1.05em;
+    overflow-x: auto;
+  }
+  .equation-box .label {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 0.8em; color: #f57f17; font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 0.92em;
+  }
+  .comparison-table th {
+    background: var(--secondary); color: white;
+    padding: 10px 14px; text-align: left;
+  }
+  .comparison-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+  }
+  .comparison-table tr:nth-child(even) td { background: #fafafa; }
+
+  .key-point {
+    background: #fff3e0; border-left: 4px solid #ff9800;
+    padding: 12px 16px; margin: 10px 0; border-radius: 0 8px 8px 0;
+  }
+  .key-point strong { color: #e65100; }
+
+  .timeline {
+    margin: 16px 0;
+  }
+  .timeline-item {
+    position: relative;
+    padding: 0 0 20px 30px;
+    border-left: 2px solid var(--accent);
+  }
+  .timeline-item:last-child { border-left: 2px solid transparent; }
+  .timeline-item::before {
+    content: '';
+    position: absolute; left: -7px; top: 4px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .timeline-item h4 { color: var(--accent); margin-bottom: 4px; }
+
+  ul.bullet { padding-left: 20px; margin: 6px 0; }
+  ul.bullet li { margin: 4px 0; }
+
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 600; margin: 2px; }
+  .tag-var { background: #e8eaf6; color: #283593; }
+  .tag-param { background: #fce4ec; color: #b71c1c; }
+  .tag-concept { background: #e0f2f1; color: #00695c; }
+
+  .ref {
+    display: inline-block;
+    font-size: 0.78em;
+    color: #6a1b9a;
+    background: #f3e5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px 2px;
+    font-weight: 500;
+    font-style: italic;
+  }
+  .ref-block {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #faf4fc;
+    border: 1px dashed #ce93d8;
+    border-radius: 6px;
+    font-size: 0.85em;
+    color: #4a148c;
+  }
+  .ref-block strong { color: #6a1b9a; }
+
+  body.mode-simple .academic { display: none; }
+  body.mode-academic .simple { display: none; }
+
+  /* ===== Visualisation styles ===== */
+  .viz-container {
+    margin: 16px 0;
+    padding: 16px;
+    background: #f8f9fa;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .viz-container h4 {
+    margin: 0 0 12px 0;
+    color: var(--accent);
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .viz-container h4::before {
+    content: '📊';
+    font-size: 1.2em;
+  }
+  .viz-canvas-wrap {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .viz-canvas-wrap canvas {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+  }
+  .viz-controls {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+  }
+  .viz-controls label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .viz-controls input[type="range"] {
+    width: 120px;
+    accent-color: var(--highlight);
+  }
+  .viz-controls .val {
+    font-size: 0.8em;
+    color: var(--text-light);
+    min-width: 35px;
+    text-align: right;
+    font-family: monospace;
+  }
+  .viz-controls button {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    background: var(--accent);
+    color: white;
+    font-size: 0.82em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .viz-controls button:hover { background: var(--highlight); }
+  .viz-legend {
+    display: flex;
+    gap: 14px;
+    margin-top: 6px;
+    font-size: 0.8em;
+    color: var(--text-light);
+    flex-wrap: wrap;
+  }
+  .viz-legend span::before {
+    content: '';
+    display: inline-block;
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: -1px;
+  }
+  .topo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .topo-card {
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+  }
+  .topo-card:hover, .topo-card.active {
+    border-color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .topo-card canvas {
+    display: block;
+    margin: 0 auto 6px auto;
+  }
+  .topo-card .topo-name {
+    font-weight: 600;
+    font-size: 0.9em;
+    color: var(--primary);
+  }
+  .topo-card .topo-stats {
+    font-size: 0.78em;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+  .topo-info {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+    font-size: 0.88em;
+    min-height: 50px;
+  }
+  .signal-flow-svg {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  @media (max-width: 700px) {
+    .hero h1 { font-size: 1.3em; }
+    .container { padding: 10px; }
+    .section-header { padding: 14px 16px; }
+    .section-header h2 { font-size: 1.05em; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Project 2 Interactive Guide</h1>
+  <p>From Wilson-Cowan to Next Generation Neural Mass Models<br>
+  A comprehensive walkthrough of all papers, models, and mathematical foundations</p>
+</div>
+
+<div class="nav-bar">
+  <a href="#biology">Biology</a>
+  <a href="#original-wc">Original WC</a>
+  <a href="#paper1">Conti 2019</a>
+  <a href="#paper2">Forrester 2024</a>
+  <a href="#notes">Textbook Notes</a>
+  <a href="#nextgen">Next Gen Model</a>
+  <a href="#comparison">Comparison</a>
+  <a href="#plan">3-Week Plan</a>
+</div>
+
+<div class="toggle-mode">
+  <button class="btn-simple" onclick="setMode('simple')">Simple</button>
+  <button class="btn-academic" onclick="setMode('academic')">Academic</button>
+  <button class="btn-both" onclick="setMode('both')">Both</button>
+</div>
+
+<div class="container">
+
+<!-- ==================== BIOLOGY BACKGROUND ==================== -->
+<div class="section" id="biology">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-notes">Background</span>
+    <h2>The Biology: Why Do We Model Brain Networks?</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="explanation simple">
+      <p>Your brain has about 86 billion neurons. They don't work alone - they form networks. Groups of neurons in different brain regions talk to each other by sending electrical and chemical signals. These signals don't arrive instantly; there's a delay (like lag in a video call) because signals have to physically travel along nerve fibers.</p>
+      <p>Scientists want to understand how these networks produce the brain's rhythmic activity (brain waves like alpha, beta, gamma). Instead of simulating every single neuron (impossibly expensive), they use <strong>mean-field population models</strong> that describe the average behaviour of thousands of neurons at once. "Mean-field" just means "replace the effect of many individual neurons with a single average." That's what Wilson-Cowan models and their successors do.</p>
+    </div>
+
+    <div class="explanation academic">
+      <p>Neural population models describe the collective dynamics of large ensembles of neurons using a small number of state variables (e.g., mean firing rate, mean membrane potential). These are <strong>mean-field models</strong>: instead of tracking every individual neuron, they describe the <em>average</em> (mean) behaviour of the population. The term "mean-field" comes from statistical physics, where the effect of all other particles on one particle is approximated by a single average "field." In neuroscience, the mean field is the average synaptic input received by a typical neuron in the population. The Wilson-Cowan model (1972) was among the first such mean-field model, capturing the interaction between excitatory (E) and inhibitory (I) populations via a system of coupled ODEs with sigmoidal nonlinearities.</p>
+      <p>Brain connectivity can be described at three levels: <em>structural connectivity</em> (axonal projections), <em>functional connectivity</em> (statistical correlations between region activities), and <em>effective connectivity</em> (causal influence). Cortical hubs, scale-free properties, and small-world architecture are observed in empirical connectomics. Time delays arise from finite axonal conduction velocities (typically 1-12 m/s) and are crucial determinants of network dynamics.</p>
+      <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019), Introduction, pp. 1-2 (three levels of brain connectivity, cortical hubs); Forrester et al. (2024), Introduction, pp. 1-3 (functional connectivity, neural mass modelling history); Notes, Section 8.3, p. 343 (population firing rate framework)</div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Excitatory and Inhibitory Neurons</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Think of excitatory neurons as "accelerator" neurons &mdash; they make other neurons more likely to fire. Inhibitory neurons are "brake" neurons &mdash; they calm things down. A healthy brain needs a balance. Too much excitation = seizures. Too much inhibition = coma. The interplay between E and I creates the rhythmic oscillations we see in EEG recordings.</p>
+          <p>Approximately 80% of cortical neurons are excitatory and 20% are inhibitory. This ~4:1 ratio is a key constraint that any realistic brain model must respect. The Wilson-Cowan model and the next generation model both describe the dynamics of these two populations.</p>
+        </div>
+        <div class="explanation academic">
+          <p>Approximately 80% of cortical neurons are excitatory (glutamatergic, primarily pyramidal cells) and 20% are inhibitory (GABAergic interneurons). Excitatory connections increase postsynaptic membrane potential toward firing threshold, while inhibitory connections hyperpolarize target neurons. The balance of E/I interactions gives rise to population-level oscillatory dynamics. The Wilson-Cowan framework captures this E-I balance through coupled rate equations with nonlinear (sigmoidal) activation functions, representing the fraction of neurons in each population that are active at time t.</p>
+          <div class="ref-block"><strong>References:</strong> Notes, Section 8.3, pp. 343-344 (excitatory/inhibitory populations, sigmoid firing rate Eq. 8.4); Conti &amp; Van Gorder (2019), p. 2, Eqs. 1-2 (E-I metapopulation formulation)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Brain Oscillation Frequency Bands</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Brain waves are rhythmic electrical patterns measured by EEG/MEG. They come in distinct frequency bands, each associated with different brain states:</p>
+          <ul class="bullet">
+            <li><strong>Delta (1-4 Hz):</strong> Deep sleep, unconsciousness</li>
+            <li><strong>Theta (4-8 Hz):</strong> Drowsiness, memory formation (hippocampus)</li>
+            <li><strong>Alpha (8-13 Hz):</strong> Relaxed wakefulness, eyes closed</li>
+            <li><strong>Beta (13-30 Hz):</strong> Active thinking, motor planning, concentration</li>
+            <li><strong>Gamma (30-100+ Hz):</strong> Attention, perception, consciousness, binding of information</li>
+          </ul>
+          <p>The Wilson-Cowan model at ~50 Hz produces gamma-band oscillations. The next generation model can produce oscillations across multiple frequency bands simultaneously, which is closer to how real brains work.</p>
+        </div>
+        <div class="explanation academic">
+          <p>Neural oscillations arise from the interplay of excitatory and inhibitory populations and are characterized by power spectral density peaks in specific frequency bands. The WC model with default parameters (Conti & Van Gorder: &beta;=10, &tau;<sub>1</sub>=1, &tau;<sub>2</sub>=1.4) produces oscillations at approximately 50 Hz (gamma band). The next generation NMM, by incorporating within-population synchrony dynamics via the Kuramoto order parameter Z, can exhibit amplitude modulation and multi-band dynamics. Forrester et al. (2024) explicitly analyze functional connectivity across 8 frequency bands from delta to high gamma, demonstrating that the model captures frequency-dependent FC patterns matching empirical MEG data.</p>
+          <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019), p. 4 (oscillation frequency ~50 Hz with default parameters); Forrester et al. (2024), Fig. 2, p. 8 (8 frequency bands: &delta; 1-4 Hz, &theta; 4-8 Hz, &alpha; 8-15 Hz, low-&beta; 15-26 Hz, high-&beta; 26-35 Hz, low-&gamma; 25-50 Hz, mid-&gamma; 50-76 Hz, high-&gamma; 76-120 Hz)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Dale's Principle and E-I Architecture</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p><strong>Dale's Principle</strong> states that a neuron releases the same neurotransmitter(s) at all of its synapses. In practice, this means each neuron is either excitatory OR inhibitory &mdash; never both. This is why the Wilson-Cowan model separates neurons into E and I populations.</p>
+          <p>Another key biological fact: <strong>long-range connections between brain regions are almost exclusively excitatory</strong> (glutamatergic pyramidal neurons). Inhibitory neurons (GABAergic interneurons) mostly act locally within a region. This is why both Conti &amp; Van Gorder and Forrester et al. only couple excitatory populations between nodes &mdash; it's not a simplification, it's biology.</p>
+        </div>
+        <div class="explanation academic">
+          <p>Dale's principle (strictly, Dale's law as commonly interpreted) constrains network architecture: each neuron releases only one type of neurotransmitter, so pyramidal cells are exclusively excitatory and interneurons exclusively inhibitory. Cortico-cortical projections are predominantly formed by pyramidal cell axons and are therefore excitatory, justifying the excitatory-only inter-node coupling in both models (Eq. 1 of Conti: only E<sub>j</sub> terms appear in the inter-node sum; Eq. 10 of Forrester: only R<sub>E<sub>j</sub></sub> drives inter-node coupling). Dale's principle is a fundamental constraint that any biologically plausible neural network model must respect.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Levels of Brain Connectivity</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Neuroscientists describe brain connectivity at three distinct levels:</p>
+          <ul class="bullet">
+            <li><strong>Structural connectivity (SC):</strong> The physical wiring &mdash; which brain regions are connected by nerve fibers (axons). Measured using diffusion MRI tractography. This is the "road map."</li>
+            <li><strong>Functional connectivity (FC):</strong> Statistical correlations between the activities of different brain regions. Measured from EEG, MEG, or fMRI time series. This is the "traffic pattern" &mdash; which regions tend to be active at the same time.</li>
+            <li><strong>Effective connectivity (EC):</strong> The causal influence one brain region exerts on another. Harder to measure; requires interventions or sophisticated modelling (e.g., Dynamic Causal Modelling).</li>
+          </ul>
+          <p><strong>Your project operates at the structural connectivity level</strong> (the adjacency matrix W), but you will <strong>also compute functional connectivity</strong> from the model output using Pearson correlation and PLV (see Step 4 in the Implementation Guide). This lets you study the structure-function relationship: how does the physical wiring (SC) shape the patterns of co-activity (FC)?</p>
+        </div>
+        <div class="explanation academic">
+          <p>The three levels of connectivity are distinct but related: structural connectivity constrains but does not fully determine functional connectivity. SC provides the substrate over which dynamics unfold, and FC emerges from the interaction of SC with intrinsic node dynamics and time delays. Forrester et al. (2024) explicitly model this relationship: SC from HCP diffusion MRI is the input, and model-generated FC (computed from simulated time series via cross-spectral analysis) is compared with empirical MEG FC. The key finding is that structure alone (eigenmode analysis) has limited predictive power for FC; dynamics must be included.</p>
+          <p><strong>For your project:</strong> The adjacency matrix W encodes SC. Conti & Van Gorder use idealised topologies (path, cycle, complete, lattice) as abstract SC. You study how SC topology affects dynamics. Computing model FC (e.g., pairwise Pearson correlation of R<sub>E</sub>(t) time series across nodes, and PLV from the Kuramoto order parameter phases) bridges structure and function — a key analysis for comparing topologies and delay strategies.</p>
+          <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019), pp. 1-2 (three levels of connectivity); Forrester et al. (2024), pp. 8-10 (structural connectivity from HCP, Desikan-Killiany atlas, 68 regions); Forrester et al. (2024), pp. 15-18 (SC eigenmode analysis vs. dynamic FC prediction)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>The E-I Balance Hypothesis</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Healthy brain function requires a delicate balance between excitation and inhibition. When this balance is disrupted:</p>
+          <ul class="bullet">
+            <li><strong>Too much excitation &rarr;</strong> Epileptic seizures (hypersynchronous firing)</li>
+            <li><strong>Too much inhibition &rarr;</strong> Coma-like states, cognitive impairment</li>
+            <li><strong>Subtle imbalance &rarr;</strong> Implicated in autism spectrum disorders, schizophrenia, ADHD</li>
+          </ul>
+          <p>The Wilson-Cowan model captures this balance through the interplay of W<sub>EE</sub> (self-excitation) and W<sub>EI</sub> (inhibitory brake). The Hopf bifurcation in the model corresponds to the tipping point where the E-I balance shifts from stable equilibrium to oscillation. The next generation model adds another dimension: within-population synchrony (|Z|), which provides finer insight into how E-I balance affects coherent network activity.</p>
+        </div>
+        <div class="explanation academic">
+          <p>The E-I balance hypothesis posits that cortical circuits operate in a regime where excitatory and inhibitory synaptic currents approximately cancel, producing fluctuation-driven dynamics. In the WC model, the Inhibition-Stabilised Network (ISN) regime (Notes, p. 347) captures this: strong W<sub>EE</sub> is stabilised by strong I feedback, producing damped gamma oscillations and a resonant frequency response. Disruption of this balance (e.g., by modifying W<sub>EE</sub>/W<sub>EI</sub> ratio) can push the system through a Hopf bifurcation (Eq. 8.8) into sustained oscillations or, conversely, into a pathological fixed point. Conti &amp; Van Gorder (2019) relate network topology effects to neurodegeneration: loss of connectivity (as in Alzheimer's) disrupts the E-I balance across the network, potentially explaining the transition from healthy oscillatory dynamics to pathological regimes.</p>
+          <div class="ref-block"><strong>References:</strong> Notes, p. 347 (ISN regime, E-I balance, gamma oscillations); Conti &amp; Van Gorder (2019), pp. 10-11 (neurodegeneration implications, loss of connectivity disrupting dynamics)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Chemical vs. Electrical Synapses</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p><strong>Chemical synapses</strong> are like sending a letter: neuron A releases chemical messengers (neurotransmitters) that float across a gap and bind to receptors on neuron B. This takes time (1-100 ms) and the signal can only go one direction.</p>
+          <p><strong>Electrical synapses (gap junctions)</strong> are like a direct wire between two neurons. Current flows directly through tiny channels connecting them. It's much faster (~0.2 ms) and can go both ways. They're especially common between inhibitory neurons.</p>
+          <p>The original Wilson-Cowan model only includes chemical synapses. The next generation model adds gap junctions too, which turns out to be important for realistic brain dynamics.</p>
+        </div>
+        <div class="explanation academic">
+          <p>Chemical synapses involve neurotransmitter release triggered by presynaptic action potentials, producing a conductance change in the postsynaptic neuron modelled as &kappa;<sub>s</sub>g(t)(v<sub>syn</sub> - v(t)), where g(t) represents a time-dependent conductance and v<sub>syn</sub> is the reversal potential. The synaptic time course is often modelled with an alpha function: g(t) = &alpha;<sup>2</sup>t exp(-&alpha;t)H(t).</p>
+          <p>Electrical synapses (gap junctions) are modelled as ohmic connections: I<sub>gap</sub> = &kappa;<sub>v</sub>(v<sub>p</sub> - v<sub>n</sub>), where &kappa;<sub>v</sub> is the gap junction coupling strength. These are bidirectional, voltage-dependent, and instantaneous. They are predominantly found between interneurons and are thought to promote synchrony within inhibitory populations.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), pp. 5-7, Eqs. 7-9 (chemical synaptic conductance model, gap junction terms &kappa;<sub>v</sub><sup>ab</sup>); Notes, Section 8.9, pp. 354-356, Eqs. 8.84-8.85 (synaptic conductance in R,V formulation); Forrester et al. (2024), p. 6 &amp; Table in S1 (gap junctions predominantly I-I, with &kappa;<sub>v</sub><sup>EI</sup> = &kappa;<sub>v</sub><sup>IE</sup> = 0 by default)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Time Delays in the Brain</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>When one brain region sends a signal to another, it doesn't arrive instantly. Signals travel along nerve fibers (axons) at finite speeds. The delay depends on:</p>
+          <ul class="bullet">
+            <li><strong>Distance:</strong> Far-apart regions have longer delays</li>
+            <li><strong>Myelination:</strong> Myelinated axons conduct faster (up to 120 m/s) than unmyelinated ones (0.5-2 m/s)</li>
+            <li><strong>Synaptic processing:</strong> Chemical transmission itself takes time</li>
+          </ul>
+          <p>Within a single brain region, delays are shorter (intra-node delays). Between regions, delays are longer (inter-node delays). These delays fundamentally change the mathematics: instead of ordinary differential equations (ODEs), we need <strong>delay differential equations (DDEs)</strong>, which are harder to solve because the future depends not just on the present state but also on past states.</p>
+        </div>
+        <div class="explanation academic">
+          <p>Conduction delays T<sub>ij</sub> = d<sub>ij</sub>/v arise from finite axonal conduction velocities v (typically 6-12 m/s for myelinated cortical axons). In the original paper by Conti & Van Gorder, two categories of delays are distinguished:</p>
+          <ul class="bullet">
+            <li><strong>Intra-node delays</strong> (&tau;<sub>1</sub>, &tau;<sub>2</sub>): representing local processing time within a cortical area between E and I subpopulations</li>
+            <li><strong>Inter-node delays</strong> (&rho;<sub>nj</sub>): representing axonal conduction time between cortical areas n and j</li>
+          </ul>
+          <p>The inclusion of delays transforms the system from ODEs to DDEs, y'(t) = f(t, y(t), y(t-&tau;<sub>1</sub>), ..., y(t-&tau;<sub>k</sub>)), which require specification of a history function for t &le; t<sub>0</sub> and specialized solvers (e.g., MATLAB's DDE23, Python's jitcdde). Delays can promote oscillatory behavior, cause instabilities through Hopf bifurcations, and introduce complex spatiotemporal patterns including travelling waves.</p>
+          <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019), pp. 2-3, Eqs. 1-2 (intra-node delays &tau;<sub>1</sub>, &tau;<sub>2</sub> and inter-node delays &rho;<sub>nj</sub>); Forrester et al. (2024), p. 8, Eq. 10 (distance-dependent delays T<sub>ij</sub> = d<sub>ij</sub>/v); Conti &amp; Van Gorder (2019), pp. 6-9, Figs. 6-8 (effect of delays on dynamics)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== ORIGINAL WILSON-COWAN ==================== -->
+<div class="section" id="original-wc">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-model">Model</span>
+    <h2>The Original Wilson-Cowan Model (1972)</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="explanation simple">
+      <p>Imagine you have two groups of people at a party: the "excited" group (E) who are dancing and making noise, and the "calm" group (I) who are trying to quiet things down. The excited group gets more excited when they hear noise (self-excitation), but the calm group tries to dampen them. Meanwhile, the excited group also stirs up the calm group. This push-and-pull creates oscillations - the party gets loud, then quiet, then loud again.</p>
+      <p>The Wilson-Cowan model captures this with just two variables and two equations. It's beautifully simple and was revolutionary when introduced in 1972. But it has limitations: it doesn't tell you anything about individual neurons, it was designed for a single brain region (no network), and it uses a somewhat arbitrary sigmoid function rather than being derived from actual neuron physics.</p>
+    </div>
+
+    <div class="explanation academic">
+      <p>The Wilson-Cowan model (1972) is a mean-field rate model describing the time evolution of the proportions of excitatory and inhibitory neurons active per unit time. It is phenomenological, meaning the sigmoidal activation function f(x) = 1/(1+exp(-&beta;x)) is chosen as a physiologically reasonable approximation rather than derived from single-neuron biophysics.</p>
+      <div class="ref-block"><strong>References:</strong> Notes, Section 8.3, pp. 343-347 (full derivation and analysis); Wilson &amp; Cowan (1972) original formulation; Notes, Eq. 8.4 (general sigmoid with threshold g<sub>0</sub> and saturation f<sub>0</sub>), Eq. 8.5 (model equations). <em>Note:</em> The simplified sigmoid f(x) = 1/(1+e<sup>-&beta;x</sup>) shown here is the specific choice used for bifurcation analysis on p. 344 (and by Conti &amp; Van Gorder); the general form (Eq. 8.4) has additional parameters f<sub>0</sub>, g<sub>0</sub>, r.</div>
+    </div>
+
+    <div class="equation-box">
+      <div class="label">Wilson-Cowan Equations (Eq. 8.5 from Notes)</div>
+      &tau;<sub>E</sub> dE/dt = -E + (1 - r<sub>E</sub>E) &middot; f<sub>E</sub>[W<sub>EE</sub>E - W<sub>EI</sub>I + p<sub>E</sub>]<br>
+      &tau;<sub>I</sub> dI/dt = -I + (1 - r<sub>I</sub>I) &middot; f<sub>I</sub>[W<sub>IE</sub>E - W<sub>II</sub>I + p<sub>I</sub>]
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Variables and Parameters Explained</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <table class="comparison-table">
+          <tr><th>Symbol</th><th>Meaning</th><th>Plain English</th></tr>
+          <tr><td><span class="tag tag-var">E(t)</span></td><td>Excitatory activity</td><td>How active the "go" neurons are (0 to 1)</td></tr>
+          <tr><td><span class="tag tag-var">I(t)</span></td><td>Inhibitory activity</td><td>How active the "stop" neurons are (0 to 1)</td></tr>
+          <tr><td><span class="tag tag-param">&tau;<sub>E</sub>, &tau;<sub>I</sub></span></td><td>Time constants</td><td>How quickly each population responds (like reaction time)</td></tr>
+          <tr><td><span class="tag tag-param">W<sub>EE</sub></span></td><td>E-to-E connection weight</td><td>How much excited neurons excite each other</td></tr>
+          <tr><td><span class="tag tag-param">W<sub>EI</sub></span></td><td>I-to-E connection weight</td><td>How strongly the "brakes" slow down the "accelerator"</td></tr>
+          <tr><td><span class="tag tag-param">W<sub>IE</sub></span></td><td>E-to-I connection weight</td><td>How much the "accelerator" activates the "brakes"</td></tr>
+          <tr><td><span class="tag tag-param">W<sub>II</sub></span></td><td>I-to-I connection weight</td><td>How much the "brakes" slow themselves (self-inhibition)</td></tr>
+          <tr><td><span class="tag tag-param">p<sub>E</sub>, p<sub>I</sub></span></td><td>External inputs</td><td>Outside stimulation (like sensory input)</td></tr>
+          <tr><td><span class="tag tag-param">r<sub>E</sub>, r<sub>I</sub></span></td><td>Refractory parameters</td><td>Recovery time after firing (often set to 0)</td></tr>
+          <tr><td><span class="tag tag-param">&beta;</span></td><td>Sigmoid steepness</td><td>How sharply neurons "switch on" (gain parameter)</td></tr>
+        </table>
+
+        <!-- VISUAL 1: Interactive Sigmoid Explorer -->
+        <div class="viz-container" id="viz-sigmoid">
+          <h4>Interactive: The Sigmoid Activation Function</h4>
+          <div class="viz-canvas-wrap">
+            <canvas id="sigmoidCanvas" width="440" height="280"></canvas>
+          </div>
+          <div class="viz-controls">
+            <label>&beta; (steepness): <input type="range" id="sigmoidBeta" min="1" max="30" value="10" step="0.5"> <span class="val" id="sigmoidBetaVal">10</span></label>
+            <label>&theta; (threshold): <input type="range" id="sigmoidTheta" min="-2" max="2" value="0" step="0.1"> <span class="val" id="sigmoidThetaVal">0.0</span></label>
+            <button onclick="document.getElementById('sigmoidBeta').value=10;document.getElementById('sigmoidTheta').value=0;updateSigmoid();">Reset</button>
+          </div>
+          <div class="viz-legend">
+            <span>Try &beta;=1 (gentle) vs &beta;=30 (nearly a step function / Heaviside). The threshold &theta; shifts where the "switch" happens.</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>What Can This Model Do?</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Despite being simple (just 2 equations), the Wilson-Cowan model can produce:</p>
+          <ul class="bullet">
+            <li><strong>Stable rest:</strong> both E and I settle at constant values (fixed point)</li>
+            <li><strong>Oscillations:</strong> rhythmic alternation between high and low activity (limit cycle) - this is like brain waves!</li>
+            <li><strong>Bistability:</strong> two possible resting states - the brain can switch between them (like "up" and "down" states seen in sleep)</li>
+          </ul>
+          <p>You can study these behaviors by drawing <strong>nullclines</strong> (curves where dE/dt=0 and dI/dt=0) in the E-I phase plane. Where they intersect gives you the fixed points.</p>
+          <p><strong>What is a bifurcation?</strong> A bifurcation is a critical point where a small change in a parameter causes a sudden qualitative change in the system's behaviour. Think of it like a tipping point. The <strong>Hopf bifurcation</strong> is the most important one here: it's the moment where a stable resting state becomes unstable and oscillations spontaneously appear. In the model, you can trigger this by increasing W<sub>EE</sub> (self-excitation) past a critical value &mdash; try it in the interactive plot below!</p>
+        </div>
+        <div class="explanation academic">
+          <p>The 2D system supports a rich bifurcation structure. For f<sub>a</sub>(x) = 1/(1+e<sup>-&beta;x</sup>), the fixed point (&Emacr;, &Imacr;) satisfies the nonlinear system (Eq. 8.6). The Jacobian matrix (Eq. 8.7) yields conditions for:</p>
+          <ul class="bullet">
+            <li><strong>Hopf bifurcation:</strong> Tr(J) = 0 with det(J) > 0, leading to stable limit cycles (Eq. 8.8)</li>
+            <li><strong>Saddle-node bifurcation:</strong> det(J) = 0, creating or destroying fixed points</li>
+            <li><strong>Bogdanov-Takens bifurcation:</strong> Tr(J) = det(J) = 0 (codimension-2)</li>
+            <li><strong>SNIC bifurcation:</strong> Saddle-node on an invariant circle</li>
+          </ul>
+          <p>The Inhibition-Stabilised Network (ISN) regime, with strong E-E excitation balanced by strong I feedback, produces damped gamma-frequency oscillations and exhibits a resonant frequency response to periodic forcing.</p>
+          <div class="ref-block"><strong>References:</strong> Notes, Section 8.3, pp. 344-346: fixed point analysis (Eq. 8.6), Jacobian (Eq. 8.7), Hopf bifurcation condition (Eq. 8.8), nullcline analysis (Fig. 8.1); Notes, p. 347 (ISN regime, damped gamma oscillations); Notes, pp. 347-349 (piecewise linear variant with Heaviside function)</div>
+        </div>
+
+        <!-- VISUAL 2: E-I Phase Plane & Oscillation Animator -->
+        <div class="viz-container" id="viz-phaseplane">
+          <h4>Interactive: Wilson-Cowan Dynamics Explorer</h4>
+          <div class="viz-canvas-wrap">
+            <canvas id="phasePlaneCanvas" width="320" height="320"></canvas>
+            <canvas id="timeSeriesCanvas" width="380" height="320"></canvas>
+          </div>
+          <div class="viz-controls">
+            <label>W<sub>EE</sub>: <input type="range" id="wcWee" min="5" max="20" value="10" step="0.5"> <span class="val" id="wcWeeVal">10</span></label>
+            <label>W<sub>EI</sub>: <input type="range" id="wcWei" min="5" max="20" value="12" step="0.5"> <span class="val" id="wcWeiVal">12</span></label>
+            <label>p<sub>E</sub>: <input type="range" id="wcPe" min="-2" max="2" value="0" step="0.1"> <span class="val" id="wcPeVal">0.0</span></label>
+            <button onclick="resetWC()">Reset</button>
+          </div>
+          <div class="viz-legend">
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#e94560;display:inline-block;border-radius:2px;"></span> E(t)</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#1976d2;display:inline-block;border-radius:2px;"></span> I(t)</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#4caf50;display:inline-block;border-radius:2px;"></span> E-nullcline</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#ff9800;display:inline-block;border-radius:2px;"></span> I-nullcline</span>
+            | Adjust W<sub>EE</sub> to switch between fixed point and oscillation (Hopf bifurcation)
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAPER 1: CONTI & VAN GORDER ==================== -->
+<div class="section" id="paper1">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-paper">Original Paper</span>
+    <h2>Conti &amp; Van Gorder (2019): Network Wilson-Cowan with Delays</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="explanation simple">
+      <p>This is the paper your project is based on. The authors took the Wilson-Cowan model and asked: "What happens if we connect many of these E-I units into a network, AND add realistic time delays?" They placed Wilson-Cowan oscillators on different types of graphs (networks) and studied how the shape of the network and the size of the delays affected the brain-like rhythms.</p>
+    </div>
+
+    <div class="explanation academic">
+      <p>Conti & Van Gorder (2019) extend the Wilson-Cowan framework to a metapopulation model incorporating both intra-node delays (within cortical regions) and inter-node delays (between regions). This produces a system of 2N coupled delay differential equations on a graph, where the adjacency matrix W encodes the network topology. The paper is novel in combining both types of delays on generic networks.</p>
+      <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019), pp. 1-3 (introduction and model formulation); Eqs. 1-2 (full DDE system); Table 1, p. 4 (default parameter values)</div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>The Model Equations</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="equation-box">
+          <div class="label">Conti & Van Gorder Model (Eqs. 1-2)</div>
+          (1/T<sub>e</sub>) dE<sub>n</sub>/dt = -E<sub>n</sub> + S<sub>e</sub>(c<sub>ee</sub>E<sub>n</sub>(t-&tau;<sub>1,n</sub>) + c<sub>ie</sub>I<sub>n</sub>(t-&tau;<sub>2,n</sub>) + P<sub>n</sub> + k<sub>n</sub> &sum;<sub>j</sub> W<sub>nj</sub> E<sub>j</sub>(t-&rho;<sub>nj</sub>))<br><br>
+          (1/(T<sub>i</sub>&alpha;<sub>n</sub>)) dI<sub>n</sub>/dt = -I<sub>n</sub> + S<sub>i</sub>(c<sub>ei</sub>E<sub>n</sub>(t-&tau;<sub>2,n</sub>) + c<sub>ii</sub>I<sub>n</sub>(t-&tau;<sub>1,n</sub>) + Q<sub>n</sub>)
+        </div>
+
+        <div class="explanation simple">
+          <p>For each brain region n (node in the network):</p>
+          <ul class="bullet">
+            <li>The E population at node n is driven by its own past E activity (delayed by &tau;<sub>1</sub>), its own past I activity (delayed by &tau;<sub>2</sub>), external input P, and signals from E populations at other connected nodes (delayed by &rho;<sub>nj</sub>)</li>
+            <li>The I population is only driven locally - it receives input from E and I within its own node (both delayed), plus external input Q</li>
+            <li>Crucially, only excitatory populations send signals between nodes (this is biologically accurate - long-range cortical connections are primarily excitatory)</li>
+          </ul>
+        </div>
+
+        <div class="explanation academic">
+          <p>The model generalizes several existing formulations. Setting k<sub>n</sub>=0 recovers the single-node delay model of Coombes & Laing (2009). Setting all delays to zero and k<sub>n</sub>=0 recovers the original Wilson-Cowan (1972). The parameter 1/&alpha;<sub>n</sub> introduces a relative timescale between E and I populations. The sigmoid function S(x) = 1/(1+exp(-&beta;x)) maps input to activity with steepness parameter &beta;. The system has 2N state variables and depends on the history over the interval [t - max(&tau;<sub>1</sub>, &tau;<sub>2</sub>, max &rho;<sub>nj</sub>), t].</p>
+          <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019), pp. 2-3, Eqs. 1-2 (model equations); p. 3 (reduction to Coombes &amp; Laing 2009 and original WC as special cases); Table 1, p. 4 (default parameters: c<sub>ee</sub>=c<sub>ei</sub>=1, c<sub>ie</sub>=c<sub>ii</sub>=-1, &beta;=10, &alpha;=0.6, P=Q=0.5, &tau;<sub>1</sub>=1, &tau;<sub>2</sub>=1.4, &rho;=10)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Network Topologies Studied</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>The authors tested four different shapes of networks (N=16 and N=100 nodes):</p>
+          <ul class="bullet">
+            <li><strong>Path graph:</strong> Nodes in a line (1-2-3-...-N). Each node connects to its neighbors only. Very sparse.</li>
+            <li><strong>Complete graph:</strong> Every node connects to every other node. Maximally dense.</li>
+            <li><strong>Cycle graph:</strong> Nodes in a ring. Like a path graph but the ends connect. Still sparse.</li>
+            <li><strong>Square lattice:</strong> Nodes on a grid, each connecting to 4 neighbors. Intermediate density.</li>
+          </ul>
+          <p>The key question: does the shape of the network matter? Answer: YES, very much.</p>
+        </div>
+
+        <!-- VISUAL 3: Network Topology Gallery -->
+        <div class="viz-container" id="viz-topology">
+          <h4>Interactive: Network Topologies (N=8)</h4>
+          <div class="topo-grid" id="topoGrid">
+            <div class="topo-card active" onclick="selectTopo('path')" id="topo-path">
+              <canvas id="topoPathCanvas" width="160" height="130"></canvas>
+              <div class="topo-name">Path Graph</div>
+              <div class="topo-stats">7 edges, deg=1.75</div>
+            </div>
+            <div class="topo-card" onclick="selectTopo('cycle')" id="topo-cycle">
+              <canvas id="topoCycleCanvas" width="160" height="130"></canvas>
+              <div class="topo-name">Cycle Graph</div>
+              <div class="topo-stats">8 edges, deg=2.0</div>
+            </div>
+            <div class="topo-card" onclick="selectTopo('complete')" id="topo-complete">
+              <canvas id="topoCompleteCanvas" width="160" height="130"></canvas>
+              <div class="topo-name">Complete Graph</div>
+              <div class="topo-stats">28 edges, deg=7.0</div>
+            </div>
+            <div class="topo-card" onclick="selectTopo('lattice')" id="topo-lattice">
+              <canvas id="topoLatticeCanvas" width="160" height="130"></canvas>
+              <div class="topo-name">Square Lattice</div>
+              <div class="topo-stats">~12 edges, deg=3.0</div>
+            </div>
+          </div>
+          <div class="topo-info" id="topoInfo">
+            <strong>Path Graph:</strong> Nodes connected in a line (1-2-3-...-N). Minimum connectivity. Signals must traverse the entire chain to reach distant nodes, making it highly susceptible to desynchronisation and chaotic dynamics. <em>Conti &amp; Van Gorder (2019), Figs. 6, 8.</em>
+          </div>
+          <div class="viz-controls">
+            <button onclick="animateTopoSignal()">&#9654; Animate Signal Propagation</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Key Findings</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="key-point">
+          <strong>Main result:</strong> Network topology can regularize or deregularize dynamics. Dense, homogeneous networks (complete graph) produce stable oscillations. Sparse, heterogeneous networks (path graph, lattice) are more susceptible to chaotic or desynchronized behavior.
+        </div>
+
+        <div class="explanation simple">
+          <p>Think of it this way: if everyone in a group can communicate with everyone else (complete graph), they can stay in sync. If communication only passes along a chain (path graph), it's easy for the message to get distorted. Specific findings:</p>
+          <ul class="bullet">
+            <li><strong>Coupling strength:</strong> Stronger connections between nodes stabilize the network (nodes coordinate better)</li>
+            <li><strong>Inter-node delays:</strong> Larger delays between nodes decrease the oscillation frequency but have a regularizing effect</li>
+            <li><strong>Intra-node delays:</strong> These tend to break synchrony, unless all nodes have the same delay values</li>
+            <li><strong>Network degree:</strong> Higher degree (more connections per node) = more stable. The complete graph is the most stable.</li>
+            <li><strong>Chaos regularization:</strong> Chaotic dynamics on path/lattice graphs can be regularized by the complete graph topology</li>
+          </ul>
+        </div>
+
+        <div class="explanation academic">
+          <p>The paper demonstrates that the mean degree of the network is a primary determinant of dynamical stability. Bifurcation diagrams (Fig. 7) show oscillation frequency as a function of intra- and inter-node delays, revealing critical thresholds &tau;<sub>crit</sub> and &rho;<sub>crit</sub> beyond which biologically relevant oscillation frequencies (30-90 Hz) are obtained. The regularization of chaotic dynamics (Fig. 8, using the parameter set from Coombes & Laing 2009) by increasing network connectivity has implications for understanding neurodegeneration, where loss of connectivity may promote pathological dynamics.</p>
+          <div class="ref-block"><strong>References:</strong> Conti &amp; Van Gorder (2019): Fig. 3, p. 5 (single-node dynamics, limit cycles); Figs. 4-5, pp. 5-6 (coupling strength effects on N=16 networks); Fig. 6, p. 7 (topology comparison, N=16); Fig. 7, pp. 7-8 (oscillation frequency vs. delay bifurcation diagrams); Fig. 8, p. 9 (chaos regularization on path vs. complete graph); Fig. 9, pp. 9-10 (N=100 network results); pp. 10-11 (discussion on neurodegeneration implications)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Limitations (What Your Project Will Address)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <ul class="bullet">
+            <li><strong>All delays are the same:</strong> Every connection between nodes has the same delay &rho;. In reality, delays vary with distance.</li>
+            <li><strong>Wilson-Cowan is phenomenological:</strong> The sigmoid activation isn't derived from real neuron physics. Parameters don't have direct biophysical meaning.</li>
+            <li><strong>No synchrony measure:</strong> The model can't tell you whether neurons within a population are firing in sync or randomly.</li>
+            <li><strong>No gap junctions:</strong> Only chemical synapses are modeled.</li>
+            <li><strong>Only 4 simple topologies:</strong> Real brain networks are much more complex (small-world, modular, etc.).</li>
+          </ul>
+          <p>Your supervisor's suggestions directly address all of these: use a more modern model (fixes 2,3,4), add varying delays (fixes 1), and study different topologies (fixes 5).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PAPER 2: FORRESTER ==================== -->
+<div class="section" id="paper2">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-paper">Recommended Paper</span>
+    <h2>Forrester et al. (2024): Next Gen NMM with Gap Junctions</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="explanation simple">
+      <p>This is the paper your supervisor recommended. It introduces a much more sophisticated brain model that:</p>
+      <ul class="bullet">
+        <li>Is mathematically derived from actual neuron physics (not just a plausible guess)</li>
+        <li>Includes both chemical and electrical synapses</li>
+        <li>Can track how synchronized neurons are within each population</li>
+        <li>Uses real brain connectivity data (Human Connectome Project)</li>
+        <li>Produces dynamics that match real brain recordings (MEG) much better than older models</li>
+      </ul>
+      <p>The key idea: start with a network of spiking neurons, then use a mathematical trick (Ott-Antonsen reduction) to get exact equations for the average behavior. You get the best of both worlds - biophysical accuracy AND computational tractability.</p>
+    </div>
+
+    <div class="explanation academic">
+      <p>Forrester et al. (2024) employ a next generation neural mass model derived from an exact mean-field reduction of a network of quadratic integrate-and-fire (QIF) neurons with both chemical and electrical (gap junction) synaptic interactions. The model is embedded in a 68-node whole-brain network using structural connectivity and path-length data from the Human Connectome Project. The paper demonstrates that this biophysically-grounded model, particularly with the inclusion of gap junctions, produces functional connectivity patterns that more closely match empirical MEG and BOLD fMRI data than phenomenological alternatives (e.g., Jansen-Rit).</p>
+      <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), pp. 1-4 (introduction, motivation for next gen NMM over Jansen-Rit); pp. 4-8 (model formulation, Eqs. 1-10); pp. 8-10 (structural connectivity from HCP, 68-region Desikan-Killiany atlas); pp. 19-22 (results: FC comparison with empirical MEG data, Figs. 7-10)</div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>The Model Equations (What You'll Implement)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="equation-box">
+          <div class="label">Next Generation Neural Mass Model - Single Node (Eqs. 7-9, Forrester et al.)</div>
+          <strong>Firing rate:</strong><br>
+          &tau;<sub>a</sub> dR<sub>a</sub>/dt = -R<sub>a</sub> &sum;<sub>b</sub>(g<sub>ab</sub> + &kappa;<sub>v</sub><sup>ab</sup>) + 2R<sub>a</sub>V<sub>a</sub> + &Delta;<sub>a</sub>/(&pi;&tau;<sub>a</sub>)<br><br>
+          <strong>Mean membrane potential:</strong><br>
+          &tau;<sub>a</sub> dV<sub>a</sub>/dt = &eta;<sub>0</sub><sup>a</sup> + V<sub>a</sub><sup>2</sup> - &pi;<sup>2</sup>&tau;<sub>a</sub><sup>2</sup>R<sub>a</sub><sup>2</sup> + &sum;<sub>b</sub>g<sub>ab</sub>(v<sub>syn</sub><sup>ab</sup> - V<sub>a</sub>) + &sum;<sub>b</sub>&kappa;<sub>v</sub><sup>ab</sup>(V<sub>b</sub> - V<sub>a</sub>)<br><br>
+          <strong>Synaptic dynamics:</strong><br>
+          dg<sub>ab</sub>/dt = &alpha;<sub>ab</sub>(s<sub>ab</sub> - g<sub>ab</sub>)<br>
+          ds<sub>ab</sub>/dt = &alpha;<sub>ab</sub>(&kappa;<sub>s</sub><sup>ab</sup>R<sub>b</sub> - s<sub>ab</sub>)<br><br>
+          where a, b &isin; {E, I} &rarr; 12 ODEs per node
+        </div>
+
+        <div class="explanation simple">
+          <p>Don't be scared by the equations! Let's break them down piece by piece:</p>
+          <ul class="bullet">
+            <li><strong>R<sub>a</sub> equation (firing rate):</strong> How fast the population fires depends on: (1) synaptic inputs dampening it (-R * sum of conductances), (2) the product of rate and voltage (2RV, the key nonlinearity), and (3) a constant drive from the spread in neuron properties (&Delta;/(&pi;&tau;))</li>
+            <li><strong>V<sub>a</sub> equation (voltage):</strong> The mean voltage evolves with: (1) a background drive (&eta;<sub>0</sub>), (2) a quadratic self-interaction (V<sup>2</sup>, from the QIF neuron model), (3) a negative term from firing (-&pi;<sup>2</sup>&tau;<sup>2</sup>R<sup>2</sup>), (4) chemical synaptic currents (conductance times driving force), and (5) gap junction currents (proportional to voltage difference between populations)</li>
+            <li><strong>g and s equations (synapses):</strong> These are "low-pass filters" that smooth the incoming spikes into a gradual conductance change. Think of them as converting sharp electrical pulses into smooth chemical signals.</li>
+          </ul>
+        </div>
+
+        <div class="explanation academic">
+          <p>The model is derived via the Ott-Antonsen ansatz applied to a network of QIF neurons with Lorentzian-distributed background drives (center &eta;<sub>0</sub>, half-width &Delta;). The complex Kuramoto order parameter W = &pi;&tau;R + iV fully describes the macroscopic state. The firing rate R and mean voltage V are the real and imaginary parts of W/(&pi;&tau;). The nonlinearity V<sup>2</sup> - &pi;<sup>2</sup>&tau;<sup>2</sup>R<sup>2</sup> arises from the conformal mapping between the phase distribution and macroscopic variables. The gap junction terms &kappa;<sub>v</sub><sup>ab</sup>(V<sub>b</sub> - V<sub>a</sub>) appear naturally in the mean-field reduction (Pietras et al., 2019). The synaptic dynamics use a second-order operator Q = (1 + &alpha;<sup>-1</sup>d/dt)<sup>2</sup> to produce an alpha-function response.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), Eqs. 7-9, pp. 6-7 (R, V, g, s equations); Eq. 6, p. 6 (alpha-function synaptic operator Q); Notes, Section 8.9, Eqs. 8.84-8.85, p. 356 (R,V formulation derived from OA reduction); Pietras et al. (2019) cited in Forrester p. 6 (gap junction mean-field derivation)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Network Coupling with Delays</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="equation-box">
+          <div class="label">Inter-node coupling (Eq. 10)</div>
+          Q<sub>ij</sub> g<sub>ij</sub>(t) = k<sub>ext</sub> w<sub>ij</sub> R<sub>E<sub>j</sub></sub>(t - T<sub>ij</sub>)
+        </div>
+
+        <div class="explanation simple">
+          <p>To connect nodes into a network, we add additional synaptic connections between the excitatory populations of different nodes. Node j's excitatory firing rate R<sub>E<sub>j</sub></sub> drives a synaptic conductance g<sub>ij</sub> at node i, but with a time delay T<sub>ij</sub> = d<sub>ij</sub>/v (distance divided by conduction speed).</p>
+          <p>This adds extra terms to the R<sub>E</sub> and V<sub>E</sub> equations at each node. The total system becomes approximately 12N + 2&times;(number of connections) delay differential equations. For a fully-connected network of N nodes, this is roughly (12 + 2N)N DDEs &mdash; for sparser graphs it is less.</p>
+        </div>
+
+        <div class="explanation academic">
+          <p>The inter-node coupling term adds &sum;<sub>j</sub> g<sub>ij</sub>(v<sub>syn</sub><sup>ij</sup> - V<sub>E<sub>i</sub></sub>) to the V<sub>E</sub> equation and -R<sub>E<sub>i</sub></sub> &sum;<sub>j</sub> g<sub>ij</sub> to the R<sub>E</sub> equation at node i. The conductances g<sub>ij</sub> are driven by delayed firing rates through the second-order synaptic filter Q<sub>ij</sub> with node-pair-specific synaptic rate &alpha;<sub>ij</sub>. Crucially, the delays T<sub>ij</sub> are <em>heterogeneous</em> - varying across connections based on physical axonal distance - unlike the constant delays in Conti & Van Gorder.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), Eq. 10, p. 8 (inter-node coupling with delays); Eq. 11, p. 8 (structural connectivity matrix w<sub>ij</sub> with row-sum normalisation); p. 9 (conduction velocity v = 12 m/s, distance-dependent delays T<sub>ij</sub> = d<sub>ij</sub>/v)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>The Kuramoto Order Parameter Z</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>This is a unique feature of the next generation model that Wilson-Cowan simply cannot provide. Z is a complex number that tells you how synchronized the neurons within a population are:</p>
+          <ul class="bullet">
+            <li><strong>|Z| &asymp; 1:</strong> Neurons are highly synchronized (all firing together)</li>
+            <li><strong>|Z| &asymp; 0:</strong> Neurons are asynchronous (firing randomly)</li>
+          </ul>
+          <p>The firing rate R is related to Z by: R = Re((1-Z*)/(1+Z*)) / (&pi;&tau;). So firing rate isn't just an arbitrary number - it's a function of how coherent the population is. This is a profound conceptual advance.</p>
+        </div>
+
+        <div class="explanation academic">
+          <p>The Kuramoto order parameter Z = (1/P) &sum;<sub>p</sub> e<sup>i&theta;<sub>p</sub></sup> (in the P &rarr; &infin; limit) emerges naturally from the Ott-Antonsen reduction. The conformal mapping Z = (1-W*)/(1+W*) maps the right half of the W = &pi;&tau;R + iV complex plane onto the unit disk |Z| &le; 1. The population firing rate is f(Z) = Re((1-Z*)/(1+Z*)) / &pi;, a nonlinear function of the degree of synchrony. This contrasts with the phenomenological sigmoid of Wilson-Cowan. The dynamics of Z are governed by dZ/dt = F(Z; &mu;<sub>0</sub>, &Delta;) + G(Z, g; v<sub>syn</sub>) (Eqs. 8.70-8.72 from Notes).</p>
+          <div class="ref-block"><strong>References:</strong> Notes, Section 8.9, pp. 352-354: Kuramoto order parameter (Eq. 8.57), OA ansatz (Eq. 8.64), Z dynamics (Eqs. 8.70-8.72), conformal mapping (Eq. 8.79); Forrester et al. (2024), Eq. 4, p. 5 (firing rate as function of Z); Notes, Fig. 8.13, p. 357 (comparison of OA reduction with spiking simulation)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Key Results from Forrester et al.</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="key-point">
+          <strong>Gap junctions matter!</strong> Including electrical synapses produces richer dynamics and better fits to empirical brain data. The model outperforms Jansen-Rit in matching empirical MEG functional connectivity.
+        </div>
+        <div class="explanation simple">
+          <ul class="bullet">
+            <li>Structural eigenmodes alone have limited power in predicting functional connectivity</li>
+            <li>Adding dynamics (via the network Jacobian eigenmodes) significantly improves predictions</li>
+            <li>The nonlinear regime (away from the Hopf bifurcation, with stronger coupling) produces FC patterns that vary across frequency bands, matching real MEG data</li>
+            <li>Gap junction coupling creates intermittent periods of strong structure-function disparity, resembling the rich dynamical repertoire seen in real brain data</li>
+            <li>The model FC (using the MIM measure) provides a better match to empirical MEG FC (Pearson distance d=0.86) compared to Jansen-Rit (d=0.93)</li>
+          </ul>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024): pp. 15-18, Figs. 5-6 (eigenmode analysis, limited explanatory power); pp. 19-20, Figs. 7-8 (gap junction dFC and linear vs. nonlinear regime FC patterns); pp. 20-21, Figs. 9-10 (gap junction coupling strength effect on FC, MEG FC comparison: Pearson distance d=0.86 vs. Jansen-Rit d=0.93); p. 19, Fig. 7B (BOLD dFC using Balloon-Windkessel model, Eq. 17)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Default Parameters (for your implementation)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <table class="comparison-table">
+          <tr><th>Parameter</th><th>Value</th><th>Meaning</th></tr>
+          <tr><td>&eta;<sub>0</sub><sup>E</sup></td><td>3.0 mV</td><td>Mean excitatory drive</td></tr>
+          <tr><td>&eta;<sub>0</sub><sup>I</sup></td><td>-2.5 mV</td><td>Mean inhibitory drive (below threshold)</td></tr>
+          <tr><td>&Delta;<sub>E</sub>, &Delta;<sub>I</sub></td><td>0.5 mV</td><td>Width of drive distribution</td></tr>
+          <tr><td>&tau;<sub>E</sub></td><td>0.011 s</td><td>Excitatory membrane time constant</td></tr>
+          <tr><td>&tau;<sub>I</sub></td><td>0.012 s</td><td>Inhibitory membrane time constant</td></tr>
+          <tr><td>&alpha;<sub>EE</sub>, &alpha;<sub>IE</sub></td><td>50 s<sup>-1</sup></td><td>Synaptic rates (E-source synapses: faster glutamatergic kinetics)</td></tr>
+          <tr><td>&alpha;<sub>EI</sub>, &alpha;<sub>II</sub></td><td>40 s<sup>-1</sup></td><td>Synaptic rates (I-source synapses: slower GABAergic kinetics)</td></tr>
+          <tr><td>&kappa;<sub>s</sub><sup>EE</sup></td><td>0.5</td><td>E&rarr;E synaptic coupling strength</td></tr>
+          <tr><td>&kappa;<sub>s</sub><sup>EI</sup></td><td>0.3</td><td>I&rarr;E synaptic coupling strength</td></tr>
+          <tr><td>&kappa;<sub>s</sub><sup>IE</sup></td><td>0.7</td><td>E&rarr;I synaptic coupling strength</td></tr>
+          <tr><td>&kappa;<sub>s</sub><sup>II</sup></td><td>0.3</td><td>I&rarr;I synaptic coupling strength</td></tr>
+          <tr><td>v<sub>syn</sub><sup>E</sup>, v<sub>syn</sub><sup>I</sup></td><td>10, -10 mV</td><td>Synaptic reversal potentials (E-source=excitatory, I-source=inhibitory)</td></tr>
+          <tr><td>v<sub>syn</sub><sup>ij</sup></td><td>10 mV</td><td>Inter-node synaptic reversal potential (excitatory, since long-range connections are glutamatergic)</td></tr>
+          <tr><td>&kappa;<sub>v</sub><sup>EE</sup>, &kappa;<sub>v</sub><sup>II</sup></td><td>0.01, 0.025</td><td>Gap junction coupling (E-E and I-I)</td></tr>
+          <tr><td>k<sub>ext</sub></td><td>0.2</td><td>Global inter-node coupling strength</td></tr>
+          <tr><td>v (conduction)</td><td>12 m/s</td><td>Axonal conduction speed (myelinated cortical axons)</td></tr>
+          <tr><td>&kappa;<sub>v</sub><sup>EI</sup>, &kappa;<sub>v</sub><sup>IE</sup></td><td>0</td><td>Cross-population gap junctions (set to zero by default)</td></tr>
+        </table>
+        <div class="explanation academic">
+          <p><strong>Note on gap junction cross-coupling:</strong> Forrester et al. set &kappa;<sub>v</sub><sup>EI</sup> = &kappa;<sub>v</sub><sup>IE</sup> = 0 in all simulations, meaning gap junctions only connect neurons of the same type (E-E or I-I), not across populations. This is consistent with the biological observation that gap junctions in cortex are predominantly found between interneurons of the same subtype.</p>
+          <p><strong>Note on structural connectivity normalisation:</strong> The connectivity weights w<sub>ij</sub> are row-sum normalised (Eq. 11), so that the total input weight to each node sums to 1. This prevents high-degree nodes from receiving disproportionately large input.</p>
+        </div>
+        <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), Table in S1 Text / p. 7 (all parameter values); p. 6 (gap junction cross-coupling set to zero); Eq. 11, p. 8 (row-sum normalisation of w<sub>ij</sub>); p. 9 (conduction velocity v = 12 m/s)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NOTES ==================== -->
+<div class="section" id="notes">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-notes">Textbook</span>
+    <h2>Textbook Notes: Mathematical Foundations</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="explanation simple">
+      <p>The textbook notes (from Coombes et al.) provide the mathematical derivation of both the Wilson-Cowan model (Section 8.3) and the Next Generation Neural Mass Model (Section 8.9). The key sections explain <em>how</em> and <em>why</em> the next generation model works - specifically the Ott-Antonsen reduction that makes it possible.</p>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Section 8.3: Wilson-Cowan - The Classic</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>This section covers the standard Wilson-Cowan analysis that any computational neuroscience student should know:</p>
+          <ul class="bullet">
+            <li>The model equations (Eq. 8.5) with the sigmoid firing rate (Eq. 8.4)</li>
+            <li>Phase-plane analysis using nullclines (Fig. 8.1)</li>
+            <li>Bifurcation analysis: how changing parameters (especially external input p<sub>E</sub>, p<sub>I</sub>) can switch the system between rest, oscillation, and bistability</li>
+            <li>The Jacobian matrix (Eq. 8.7) and conditions for Hopf bifurcation (Eq. 8.8)</li>
+            <li>The piecewise linear variant (replacing sigmoid with Heaviside step function)</li>
+          </ul>
+          <div class="ref-block"><strong>References:</strong> Notes, Section 8.3: Eq. 8.4, p. 343 (sigmoid); Eq. 8.5, p. 344 (model equations); Eq. 8.6, p. 344 (fixed point); Eq. 8.7, p. 345 (Jacobian); Eq. 8.8, p. 345 (Hopf condition); Fig. 8.1, p. 344 (nullclines and phase plane); pp. 347-349 (piecewise linear WC model with Heaviside)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Section 8.9: The Ott-Antonsen Reduction (The Key Trick)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>This is the mathematical magic behind the next generation model. Here's the idea in simple steps:</p>
+          <ol>
+            <li><strong>Start with many neurons:</strong> Consider N theta-neurons (or equivalently QIF neurons), each described by a single phase &theta;<sub>i</sub></li>
+            <li><strong>They interact:</strong> Each neuron is driven by its own background current &mu;<sub>i</sub> plus synaptic input from others</li>
+            <li><strong>Take the infinite limit:</strong> Let N &rarr; &infin; and describe the population by a density function &rho;(&theta;, t)</li>
+            <li><strong>The OA ansatz:</strong> Assume the density has a special Lorentzian shape parameterized by a single complex number Z (the Kuramoto order parameter)</li>
+            <li><strong>Average over disorder:</strong> The background drives &mu;<sub>i</sub> are drawn from a Lorentzian distribution (center &mu;<sub>0</sub>, width &Delta;)</li>
+            <li><strong>Result:</strong> You get a single complex ODE for Z, or equivalently two real ODEs for R (firing rate) and V (mean voltage)</li>
+          </ol>
+          <p>The beauty is that this reduction is <em>exact</em> (not an approximation) in the infinite-N limit. You go from infinitely many neurons to just 2 equations per population, with no information loss!</p>
+        </div>
+
+        <div class="explanation academic">
+          <p>The Ott-Antonsen (OA) reduction proceeds as follows. For a network of &theta;-neurons (Eq. 8.44) with global coupling via pulse function P(&theta;) = &delta;(&theta; - &pi;), the phase distribution &rho;(&theta;|&mu;, t) satisfies a continuity equation (Eq. 8.59). The OA ansatz (Eq. 8.64) constrains all Fourier coefficients to be powers of a single complex function a(&mu;, t): f<sub>n</sub>(&mu;, t) = a(&mu;, t)<sup>n</sup>, |a| &le; 1. This yields a complex ODE for a (Eq. 8.65).</p>
+          <p>The Kuramoto order parameter Z(t) is constructed by integrating over the Lorentzian distribution L(&mu;) = (&Delta;/&pi;) / ((&mu;-&mu;<sub>0</sub>)<sup>2</sup>+&Delta;<sup>2</sup>) using contour integration (Eq. 8.67), yielding Z*(t) = a(&mu;<sub>-</sub>, t). The firing rate f(Z) = Re((1-Z*)/(1+Z*))/&pi; (Eq. 8.69) is a nonlinear, non-monotone function of |Z|. Via the conformal map W = &pi;&tau;R + iV (where Z = (1-W*)/(1+W*)), the dynamics become (Eqs. 8.84-8.85): R' = &Delta;/&pi; + R(2V - g), V' = &mu;<sub>0</sub> + V<sup>2</sup> - &pi;<sup>2</sup>R<sup>2</sup> + g(v<sub>syn</sub> - V).</p>
+          <div class="ref-block"><strong>References:</strong> Notes, Section 8.9: pp. 349-351 (theta-neuron model, Eq. 8.44); pp. 351-352 (continuity equation, Eq. 8.59); pp. 352-353 (OA ansatz, Eq. 8.64; complex ODE, Eq. 8.65); p. 353 (Lorentzian distribution, Eq. 8.66; contour integration, Eq. 8.67); pp. 353-354 (firing rate f(Z), Eq. 8.69; Z dynamics, Eqs. 8.70-8.72); pp. 355-356 (conformal map W, Eq. 8.79; R,V equations, Eqs. 8.84-8.85)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>QIF Neurons and the Voltage Description</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>The theta-neuron model can be rewritten in terms of voltage using v<sub>i</sub> = tan(&theta;<sub>i</sub>/2), giving the <strong>quadratic integrate-and-fire (QIF) neuron</strong>:</p>
+        </div>
+        <div class="equation-box">
+          <div class="label">QIF Neuron (Eq. 8.73)</div>
+          &tau; dv/dt = &mu; + v<sup>2</sup> + g(v<sub>syn</sub> - v)
+        </div>
+        <div class="explanation simple">
+          <p>This is the simplest spiking neuron model: when v reaches +&infin; (threshold), it resets to -&infin;, producing a "spike." The v<sup>2</sup> term is what makes it quadratic. The mean-field reduction of this model gives the (R, V) equations that you'll implement.</p>
+          <p>The key insight from Montbrio et al. (2015): the probability density of neuron voltages converges to a Lorentzian shape (Eq. 8.76), with center y (related to mean voltage V) and half-width x (related to firing rate R: x = &pi;R). This Lorentzian assumption is what makes the exact reduction possible.</p>
+          <div class="ref-block"><strong>References:</strong> Notes, Section 8.9: p. 354 (QIF neuron, Eq. 8.73; equivalence to theta-neuron via v = tan(&theta;/2)); pp. 354-355 (Lorentzian voltage distribution, Eq. 8.76; Montbri&oacute; et al. 2015 derivation); Fig. 8.13, p. 357 (validation: OA reduction vs. QIF spiking network simulation)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== NEXT GEN MODEL DEEP DIVE ==================== -->
+<div class="section" id="nextgen">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-model">Your Task</span>
+    <h2>The Next Generation Model: Your Implementation Guide</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="explanation simple">
+      <p>This section brings everything together for what you need to implement. Think of building the model in layers:</p>
+      <ol>
+        <li>Single E-I node (12 ODEs) &rarr; validate it oscillates correctly</li>
+        <li>N coupled nodes without delays (12N ODEs) &rarr; validate coupling/synchronization</li>
+        <li>N coupled nodes with delays (12N + 2&times;connections DDEs) &rarr; the full model</li>
+      </ol>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Step 1: Single Node (12 ODEs)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Your state vector for one node has 12 components:</p>
+          <p><span class="tag tag-var">R<sub>E</sub></span> <span class="tag tag-var">R<sub>I</sub></span> <span class="tag tag-var">V<sub>E</sub></span> <span class="tag tag-var">V<sub>I</sub></span> <span class="tag tag-var">g<sub>EE</sub></span> <span class="tag tag-var">g<sub>EI</sub></span> <span class="tag tag-var">g<sub>IE</sub></span> <span class="tag tag-var">g<sub>II</sub></span> <span class="tag tag-var">s<sub>EE</sub></span> <span class="tag tag-var">s<sub>EI</sub></span> <span class="tag tag-var">s<sub>IE</sub></span> <span class="tag tag-var">s<sub>II</sub></span></p>
+          <p>For each variable, here's what the equation is doing in plain terms:</p>
+          <ul class="bullet">
+            <li><strong>dR<sub>E</sub>/dt:</strong> "The excitatory firing rate goes up when voltage is high (2R<sub>E</sub>V<sub>E</sub> term), goes down due to all the synaptic conductances dampening it, and has a constant positive drive from neural heterogeneity (&Delta;<sub>E</sub>)."</li>
+            <li><strong>dV<sub>E</sub>/dt:</strong> "The excitatory voltage is pushed up by background drive (&eta;<sub>0</sub><sup>E</sup>) and self-interaction (V<sup>2</sup>), pulled down by firing (the -&pi;<sup>2</sup>&tau;<sup>2</sup>R<sup>2</sup> term), and modulated by synaptic currents (chemical: g*(v<sub>syn</sub>-V), electrical: &kappa;<sub>v</sub>*(V<sub>other</sub>-V))."</li>
+            <li><strong>dg/dt and ds/dt:</strong> "The synaptic conductances smoothly track the presynaptic firing rates through a double exponential filter."</li>
+          </ul>
+          <p>Use <code>scipy.integrate.solve_ivp</code> with a stiff solver (e.g., 'Radau' or 'BDF') since the system can be stiff due to the different time scales.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), Eqs. 7-9, pp. 6-7 (single-node equations you implement); Table in S1 Text (parameter values); Notes, Eqs. 8.84-8.85, p. 356 (simplified R,V form without gap junctions for initial validation); Notes, Fig. 8.13, p. 357 (target validation plot: R(t), V(t) should match QIF spiking simulation)</div>
+
+        <!-- VISUAL 4A: Static E-I Circuit Diagram mapped to equations -->
+        <div class="viz-container" id="viz-signalflow">
+          <h4>Diagram: How the 12 ODEs Connect</h4>
+          <div class="viz-canvas-wrap">
+            <canvas id="signalFlowCanvas" width="900" height="480"></canvas>
+          </div>
+          <div class="viz-legend">
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#e94560;display:inline-block;"></span> Excitatory connections</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#1976d2;display:inline-block;"></span> Inhibitory connections</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:14px;height:3px;background:#7b1fa2;display:inline-block;border-top:1px dashed #7b1fa2;"></span> Gap junctions (electrical)</span>
+          </div>
+        </div>
+
+        <!-- VISUAL 4B: Interactive Simulation (separate) -->
+        <div class="viz-container" id="viz-ngsim">
+          <h4>Simulation: Run the Next Gen Model</h4>
+          <div class="viz-controls">
+            <button onclick="startNGSimulation()">&#9654; Start</button>
+            <button onclick="stopNGSimulation()">&#9632; Stop</button>
+            <label>&eta;<sub>0</sub><sup>E</sup> (drive): <input type="range" id="ngEta" min="0" max="6" value="3" step="0.2"> <span class="val" id="ngEtaVal">3.0</span></label>
+            <label>&kappa;<sub>v</sub><sup>II</sup> (gap jn): <input type="range" id="ngKv" min="0" max="0.1" value="0.025" step="0.005"> <span class="val" id="ngKvVal">0.025</span></label>
+          </div>
+          <div class="viz-canvas-wrap" style="margin-top:10px;">
+            <canvas id="ngTimeSeriesCanvas" width="900" height="250"></canvas>
+          </div>
+          <div class="viz-legend">
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#e94560;display:inline-block;border-radius:2px;"></span> R<sub>E</sub> (exc. firing rate)</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#1976d2;display:inline-block;border-radius:2px;"></span> R<sub>I</sub> (inh. firing rate)</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#4caf50;display:inline-block;border-radius:2px;"></span> V<sub>E</sub> (exc. voltage)</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:#ff9800;display:inline-block;border-radius:2px;"></span> V<sub>I</sub> (inh. voltage)</span>
+            | Try &eta;<sub>0</sub><sup>E</sup>=0 (no drive, silent) vs 3 (oscillating). Set &kappa;<sub>v</sub><sup>II</sup>=0 to remove gap junctions.
+          </div>
+        </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Step 2: Network Without Delays (12N ODEs)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>To connect N nodes, you add inter-node synaptic conductances. At each node i, the excitatory population receives input from excitatory populations at other connected nodes j. You need additional g<sub>ij</sub> and s<sub>ij</sub> variables for each connection.</p>
+          <p>However, for a simpler start (and closer to the Conti & Van Gorder approach), you can use a single global coupling term rather than per-connection synaptic variables. This adds the coupling term directly to the R<sub>E</sub> and V<sub>E</sub> equations without extra state variables:</p>
+          <ul class="bullet">
+            <li>V<sub>E<sub>i</sub></sub> equation gets: + k<sub>ext</sub> &sum;<sub>j</sub> w<sub>ij</sub> R<sub>E<sub>j</sub></sub> (v<sub>syn</sub><sup>ij</sup> - V<sub>E<sub>i</sub></sub>)</li>
+            <li>R<sub>E<sub>i</sub></sub> equation gets: - R<sub>E<sub>i</sub></sub> k<sub>ext</sub> &sum;<sub>j</sub> w<sub>ij</sub> R<sub>E<sub>j</sub></sub></li>
+          </ul>
+          <p>Start with N=2, verify that two coupled nodes synchronize, then scale to N=16.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), Eq. 10, p. 8 (inter-node coupling terms added to R<sub>E</sub> and V<sub>E</sub>); Eq. 11, p. 8 (row-sum normalisation of w<sub>ij</sub>); Conti &amp; Van Gorder (2019), pp. 3-4 (network topology definitions: path, cycle, complete, lattice graphs)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Step 3: Adding Delays (DDEs)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Replace R<sub>E<sub>j</sub></sub>(t) with R<sub>E<sub>j</sub></sub>(t - T<sub>ij</sub>) in the coupling terms. Now you need a DDE solver. In Python, <code>jitcdde</code> is recommended - it compiles the equations for speed and handles multiple constant and state-dependent delays.</p>
+          <p>You'll need to provide a history function (what the state was before time 0). A common choice is to set the history to the steady state values or to a constant initial condition and let the system settle into its natural dynamics.</p>
+        </div>
+        <div class="explanation academic">
+          <p>The full delayed network model follows Eq. (10) of Forrester et al., with the inter-node conductances g<sub>ij</sub> driven by Q<sub>ij</sub>g<sub>ij</sub>(t) = k<sub>ext</sub>w<sub>ij</sub>R<sub>E<sub>j</sub></sub>(t - T<sub>ij</sub>). Here Q<sub>ij</sub> = (1 + &alpha;<sub>ij</sub><sup>-1</sup>d/dt)<sup>2</sup> is the second-order synaptic operator, and T<sub>ij</sub> = d<sub>ij</sub>/v are distance-dependent delays. The system requires storage of history values and interpolation for non-grid delay times. JiTCDDE uses Hermite interpolation (similar to NFESOLVE's approach) and adaptive stepping.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024), Eq. 10, p. 8 (delayed coupling equation); Eq. 6, p. 6 (second-order synaptic operator Q); pp. 10-11 (NFESOLVE solver: C++ with OpenMP, adaptive RK, Hermite interpolation); Conti &amp; Van Gorder (2019), p. 4 (MATLAB DDE23 solver for constant-delay comparison)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <div class="subsection-header" onclick="toggleSection(this)">
+        <h3>Step 4: Functional Connectivity Analysis (Ningqian)</h3>
+        <span class="arrow">&#9654;</span>
+      </div>
+      <div class="subsection-body">
+        <div class="explanation simple">
+          <p>Once you have your network model running, you can compute <strong>functional connectivity (FC)</strong> from the simulation output. This bridges structure and function: your adjacency matrix W defines <em>structural</em> connectivity (which nodes are wired together), while FC reveals which nodes are <em>functionally</em> co-active (which regions tend to oscillate together). Forrester et al. (2024) use FC analysis extensively (pp. 9-13) to validate their model against empirical MEG data.</p>
+          <p>Two practical FC methods you should implement:</p>
+        </div>
+
+        <div class="key-point">
+          <strong>Method 1: Pearson Correlation FC (simplest)</strong>
+        </div>
+        <div class="explanation simple">
+          <p>Compute the Pearson correlation coefficient between R<sub>E</sub>(t) time series across all pairs of nodes. This gives you an N&times;N FC matrix directly:</p>
+          <p><strong>FC<sub>ij</sub> = corr(R<sub>E<sub>i</sub></sub>(t), R<sub>E<sub>j</sub></sub>(t))</strong></p>
+          <p>Values near +1 mean two regions oscillate in sync; near 0 means no relationship; near -1 means anti-correlated. This is the most common FC measure in fMRI studies (applied to BOLD signal) and is trivial to compute with <code>numpy.corrcoef()</code>.</p>
+        </div>
+        <div class="explanation academic">
+          <p>Pearson correlation applied to model firing rate time series R<sub>E<sub>i</sub></sub>(t) produces a symmetric N&times;N FC matrix. This is analogous to the BOLD FC computation in Forrester et al. (Eq. 17), where the Balloon-Windkessel model converts R<sub>E</sub>(t) to a simulated BOLD signal before computing correlations. For your project, directly correlating R<sub>E</sub>(t) is sufficient and avoids the complexity of haemodynamic modelling. Ensure you discard a transient period (e.g., first 1-2 seconds) before computing correlations to avoid initial condition artefacts.</p>
+        </div>
+
+        <div class="key-point">
+          <strong>Method 2: Phase-Locking Value (PLV) &mdash; unique to the Next Gen Model</strong>
+        </div>
+        <div class="explanation simple">
+          <p>This is the strongest novel contribution, because PLV uses the <strong>Kuramoto order parameter</strong> that only the next generation model provides (impossible with Wilson-Cowan!). At each node, the model gives you Z<sub>j</sub>(t) = |Z<sub>j</sub>|e<sup>i&Theta;<sub>j</sub></sup>. You extract the phase &Theta;<sub>j</sub>(t) from Z and compute:</p>
+        </div>
+        <div class="equation-box">
+          <div class="label">Phase-Locking Value (Eq. 16, Forrester et al.)</div>
+          PLV<sub>jk</sub> = |&langle;e<sup>i(&Theta;<sub>j</sub>(t) - &Theta;<sub>k</sub>(t))</sup>&rangle;<sub>t</sub>|
+        </div>
+        <div class="explanation simple">
+          <p>PLV measures phase synchrony between two regions:</p>
+          <ul class="bullet">
+            <li><strong>PLV = 1:</strong> Perfectly phase-locked (constant phase difference)</li>
+            <li><strong>PLV = 0:</strong> No phase relationship (random phase difference)</li>
+          </ul>
+          <p>This gives you an N&times;N FC matrix capturing synchronisation structure. You can then compare FC matrices across different topologies (Dean's work) and delay conditions (Kavya's work) to see how structure shapes function.</p>
+        </div>
+        <div class="explanation academic">
+          <p>The PLV exploits the complex Kuramoto order parameter Z<sub>j</sub>(t) available from the Ott-Antonsen reduction. Using W<sub>j</sub> = &pi;&tau;R<sub>j</sub> + iV<sub>j</sub> and the conformal mapping Z<sub>j</sub> = (1 - W<sub>j</sub>*)/(1 + W<sub>j</sub>*), the population phase &Theta;<sub>j</sub>(t) = arg(Z<sub>j</sub>(t)) can be extracted at each time step. The PLV (Eq. 16 of Forrester et al.) then quantifies the consistency of phase differences over time. This metric is particularly powerful because it is amplitude-independent and captures oscillatory coherence directly.</p>
+          <p><strong>Implementation steps:</strong></p>
+          <ul class="bullet">
+            <li>At each time step, compute W<sub>j</sub> = &pi;&tau;<sub>E</sub>R<sub>E<sub>j</sub></sub> + iV<sub>E<sub>j</sub></sub> for each node j</li>
+            <li>Map to Z<sub>j</sub> = (1 - conj(W<sub>j</sub>))/(1 + conj(W<sub>j</sub>))</li>
+            <li>Extract phase: &Theta;<sub>j</sub> = arg(Z<sub>j</sub>)</li>
+            <li>Compute PLV<sub>jk</sub> = |mean(exp(i(&Theta;<sub>j</sub> - &Theta;<sub>k</sub>)))| over time</li>
+          </ul>
+          <p>Forrester et al. also define the <strong>GIM (Global Interaction Measure)</strong> (Eq. 15) based on cross-spectral density matrices, which captures frequency-specific interactions. The GIM simplifies for single-component signals and can be computed from the power spectra and cross-spectra of R<sub>E</sub>(t). However, PLV is recommended as the primary metric due to its direct link to the next gen model's Kuramoto order parameter.</p>
+          <div class="ref-block"><strong>References:</strong> Forrester et al. (2024): Eq. 16, p. 10 (PLV definition); Eq. 15, p. 10 (GIM/MIM definition); Eq. 17, p. 11 (Balloon-Windkessel BOLD model); Eq. 18, p. 11 (Pearson distance for FC comparison: &delta; = 1 - (corr - (&langle;FC<sub>emp</sub>&rangle; - &langle;FC<sub>sim</sub>&rangle;)&sup2;)); pp. 19-22, Figs. 7-10 (FC results, comparison with empirical MEG FC)</div>
+        </div>
+
+        <div class="key-point">
+          <strong>What to do with the FC matrices:</strong> Visualise as heatmaps. Compare FC matrices across topologies (path vs. complete vs. small-world). Compute the correlation between SC (adjacency matrix W) and FC to quantify the structure-function relationship. Study how heterogeneous delays alter FC compared to constant delays.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== COMPARISON TABLE ==================== -->
+<div class="section" id="comparison">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-model">Comparison</span>
+    <h2>Wilson-Cowan vs. Next Generation NMM: Side by Side</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+    <table class="comparison-table">
+      <tr><th>Feature</th><th>Wilson-Cowan (1972 / Conti 2019)</th><th>Next Gen NMM (Forrester 2024)</th></tr>
+      <tr><td><strong>Origin</strong></td><td>Phenomenological (sigmoid chosen heuristically)</td><td>Derived from QIF spiking neurons (exact mean-field)</td></tr>
+      <tr><td><strong>State variables (per node)</strong></td><td>2 (E, I)</td><td>12 (R<sub>E</sub>, R<sub>I</sub>, V<sub>E</sub>, V<sub>I</sub>, 4&times;g, 4&times;s)</td></tr>
+      <tr><td><strong>Firing rate</strong></td><td>Sigmoid: f(x) = 1/(1+exp(-&beta;x))</td><td>f(Z) = Re((1-Z*)/(1+Z*))/&pi;</td></tr>
+      <tr><td><strong>Synchrony measure</strong></td><td>None</td><td>Kuramoto order parameter Z (|Z|=synchrony)</td></tr>
+      <tr><td><strong>Gap junctions</strong></td><td>No</td><td>Yes (&kappa;<sub>v</sub> terms)</td></tr>
+      <tr><td><strong>Parameter meaning</strong></td><td>Abstract (synaptic weights, gain)</td><td>Biophysical (mV, ms, reversal potentials)</td></tr>
+      <tr><td><strong>Dynamics</strong></td><td>Simple oscillations, fixed points</td><td>Complex oscillations, amplitude modulation, ERS/ERD</td></tr>
+      <tr><td><strong>Computational cost</strong></td><td>Low (2N equations)</td><td>Higher (12N + 2&times;connections DDEs)</td></tr>
+      <tr><td><strong>Link to spiking</strong></td><td>None</td><td>Exact correspondence with QIF network</td></tr>
+      <tr><td><strong>Typical frequency</strong></td><td>~50 Hz (one frequency)</td><td>Multiple frequency bands (delta to gamma)</td></tr>
+      <tr><td><strong>FC analysis</strong></td><td>Pearson correlation of E(t) only</td><td>Pearson correlation + PLV from Kuramoto order parameter Z</td></tr>
+    </table>
+    <div class="ref-block"><strong>References:</strong> Comparison synthesised from: Notes, Section 8.3 (WC model properties); Notes, Section 8.9 (next gen NMM properties); Conti &amp; Van Gorder (2019), pp. 1-2 (WC limitations); Forrester et al. (2024), pp. 3-4 (advantages of next gen NMM over phenomenological models); Forrester et al. (2024), p. 24 (frequency band analysis showing multi-band FC)</div>
+  </div>
+</div>
+
+<!-- ==================== PROJECT PLAN ==================== -->
+<div class="section" id="plan">
+  <div class="section-header" onclick="toggleSection(this)">
+    <span class="badge badge-plan">Plan</span>
+    <h2>3-Week Project Plan</h2>
+    <span class="arrow">&#9654;</span>
+  </div>
+  <div class="section-body">
+
+    <div class="timeline">
+      <div class="key-point" style="background: #e8f5e9; border-left: 4px solid #4caf50;">
+      <strong>Project Narrative:</strong> Conti &amp; Van Gorder (2019) showed that network topology and time delays strongly shape coupled Wilson-Cowan oscillator dynamics. But Wilson-Cowan is phenomenological &mdash; it cannot track within-population synchrony, lacks gap junctions, and its parameters don't map to neuron biophysics. <strong>Our central question:</strong> <em>What happens when we replace Wilson-Cowan with a biophysically-grounded next generation neural mass model in the same metapopulation framework?</em> We first reproduce the original WC results as a baseline, then systematically compare with the next gen model across topologies, delay strategies, and gap junction settings &mdash; revealing dynamics invisible to Wilson-Cowan.
+    </div>
+
+    <div class="timeline-item">
+        <h4>Week 1: WC Baseline + Next Gen Foundation (Days 1-7)</h4>
+        <p><strong>Ningqian (next gen model):</strong></p>
+        <ul class="bullet">
+          <li>Implement single-node next gen NMM (12 ODEs) in Python using scipy</li>
+          <li>Validate: reproduce oscillatory R(t), V(t), |Z(t)| dynamics against Notes Fig. 8.13</li>
+          <li>Implement N=2 coupled nodes (without delays) to validate coupling</li>
+        </ul>
+        <p><strong>Dean (topology + WC):</strong></p>
+        <ul class="bullet">
+          <li>Implement Wilson-Cowan DDE model in <code>model.py</code> (2 equations per node, Conti &amp; Van Gorder Eqs. 1-2)</li>
+          <li>Integrate DDE solver (jitcdde) for the WC model</li>
+          <li>Run WC on 4 original topologies (path, cycle, complete, lattice) with N=16</li>
+          <li>Add new topologies: small-world (Watts-Strogatz), scale-free (Barab&aacute;si-Albert)</li>
+        </ul>
+        <p><strong>Kavya (delays + WC):</strong></p>
+        <ul class="bullet">
+          <li>Port delay generation functions from Kuramoto notebook into <code>src/</code> (constant, uniform, geometric, normal modes already coded)</li>
+          <li>Run WC with constant delays on Dean's topologies as baseline</li>
+          <li>Implement heterogeneous delay strategies: distance-dependent (T<sub>ij</sub> = d<sub>ij</sub>/v), gamma-distributed, path-length-proportional</li>
+        </ul>
+        <p><strong>Ceren:</strong> TBD &mdash; role to be decided with the team.</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Week 2: WC Results + Next Gen Network (Days 8-14)</h4>
+        <p><strong>Ningqian:</strong> Scale next gen model to network with delays (jitcdde). Test with constant delays on N=16. Provide working delayed network model to team by mid-week.</p>
+        <p><strong>Dean:</strong> Complete WC topology comparison (all 6 topologies). Begin re-running experiments on next gen model as Ningqian delivers it.</p>
+        <p><strong>Kavya:</strong> Complete WC heterogeneous delay experiments. Test varying delays on next gen model as it becomes available.</p>
+        <p><strong>Ceren:</strong> TBD</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Week 3: Comparison, FC Analysis &amp; Report (Days 15-21)</h4>
+        <p><strong>Ningqian:</strong> WC vs. Next Gen NMM direct comparison on same topologies. |Z| synchrony analysis. FC matrices (Pearson correlation of R<sub>E</sub>(t) + PLV from Z phases).</p>
+        <p><strong>Dean:</strong> Next gen topology comparison figures. Side-by-side with WC topology results.</p>
+        <p><strong>Kavya:</strong> Next gen delay comparison figures. Constant vs. heterogeneous delays on both models.</p>
+        <p><strong>Ceren:</strong> TBD</p>
+        <p><strong>Everyone:</strong> Write Results, Discussion, Conclusions. Compile figures. Code cleanup. CRediT statement.</p>
+      </div>
+    </div>
+
+    <div class="key-point">
+      <strong>Implementation stack:</strong> Python (NumPy, SciPy, Matplotlib), jitcdde for DDEs, NetworkX for graphs, Overleaf for LaTeX report. Reference: OpenSourceBrain/WilsonCowan (Python WC baseline), Forrester et al.'s NFESOLVE (C++ equation reference).
+    </div>
+
+    <div class="key-point">
+      <strong>Novel contributions for report:</strong>
+      <ol>
+        <li><strong>Replacing WC with next gen NMM</strong> in the metapopulation framework (Ningqian)</li>
+        <li><strong>Heterogeneous (varying) delays</strong> &mdash; distance-dependent, gamma-distributed (Kavya)</li>
+        <li><strong>Additional network topologies</strong> &mdash; small-world, scale-free beyond original 4 (Dean)</li>
+        <li><strong>Gap junction effects</strong> on network dynamics &mdash; unique to next gen model, impossible with WC</li>
+        <li><strong>Kuramoto synchrony analysis</strong> &mdash; |Z| tracks within-population synchrony, impossible with WC (all)</li>
+        <li><strong>Functional connectivity analysis</strong> via PLV and Pearson correlation &mdash; bridges structural and functional connectivity (all)</li>
+      </ol>
+    </div>
+
+    <div class="key-point">
+      <strong>Connectivity note:</strong> Your project uses <em>structural connectivity</em> (the adjacency matrix W) as input. The topology (path, cycle, complete, lattice, etc.) represents which brain regions are physically connected. You study how this structure shapes the resulting dynamics. <em>Functional connectivity</em> is computed from the model output using Pearson correlation of R<sub>E</sub>(t) and PLV from the Kuramoto order parameter (see Step 4 above), bridging the structure-function relationship.
+    </div>
+  </div>
+</div>
+
+</div><!-- end container -->
+
+<script>
+function toggleSection(header) {
+  const body = header.nextElementSibling;
+  const arrow = header.querySelector('.arrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function setMode(mode) {
+  document.body.classList.remove('mode-simple', 'mode-academic');
+  if (mode === 'simple') document.body.classList.add('mode-simple');
+  else if (mode === 'academic') document.body.classList.add('mode-academic');
+}
+
+// Open first section by default
+document.addEventListener('DOMContentLoaded', function() {
+  const firstBody = document.querySelector('.section-body');
+  const firstArrow = document.querySelector('.section-header .arrow');
+  if (firstBody) firstBody.classList.add('open');
+  if (firstArrow) firstArrow.classList.add('open');
+  // Initialize all visualisations
+  updateSigmoid();
+  initWC();
+  drawAllTopologies();
+  drawSignalFlowDiagram();
+});
+
+// =====================================================
+// VISUAL 1: Interactive Sigmoid Explorer
+// =====================================================
+function updateSigmoid() {
+  const canvas = document.getElementById('sigmoidCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const beta = parseFloat(document.getElementById('sigmoidBeta').value);
+  const theta = parseFloat(document.getElementById('sigmoidTheta').value);
+  document.getElementById('sigmoidBetaVal').textContent = beta;
+  document.getElementById('sigmoidThetaVal').textContent = theta.toFixed(1);
+
+  ctx.clearRect(0,0,W,H);
+  const pad = {l:50, r:20, t:20, b:40};
+  const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+  const xmin=-3, xmax=3, ymin=-0.05, ymax=1.1;
+
+  // Grid
+  ctx.strokeStyle = '#eee'; ctx.lineWidth = 1;
+  for (let y=0; y<=1; y+=0.25) {
+    const py = pad.t + ph*(1-(y-ymin)/(ymax-ymin));
+    ctx.beginPath(); ctx.moveTo(pad.l,py); ctx.lineTo(pad.l+pw,py); ctx.stroke();
+  }
+  // Axes
+  ctx.strokeStyle = '#999'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+  // Labels
+  ctx.fillStyle = '#666'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('Input x', pad.l+pw/2, H-4);
+  for (let x=xmin; x<=xmax; x++) { ctx.fillText(x, pad.l+pw*(x-xmin)/(xmax-xmin), pad.t+ph+16); }
+  ctx.textAlign = 'right';
+  for (let y=0; y<=1; y+=0.25) { ctx.fillText(y.toFixed(2), pad.l-6, pad.t+ph*(1-(y-ymin)/(ymax-ymin))+4); }
+  ctx.save(); ctx.translate(14, pad.t+ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText('f(x)',0,0); ctx.restore();
+
+  // Heaviside reference (dashed)
+  ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.setLineDash([4,4]);
+  ctx.beginPath();
+  const hx0 = pad.l+pw*(theta-xmin)/(xmax-xmin);
+  ctx.moveTo(pad.l, pad.t+ph*(1-(-0.05-ymin)/(ymax-ymin)));
+  ctx.lineTo(hx0, pad.t+ph*(1-(-0.05-ymin)/(ymax-ymin)));
+  ctx.lineTo(hx0, pad.t+ph*(1-(1.05-ymin)/(ymax-ymin)));
+  ctx.lineTo(pad.l+pw, pad.t+ph*(1-(1.05-ymin)/(ymax-ymin)));
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Sigmoid curve
+  ctx.strokeStyle = '#e94560'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  for (let i=0; i<=200; i++) {
+    const x = xmin + (xmax-xmin)*i/200;
+    const y = 1/(1+Math.exp(-beta*(x-theta)));
+    const px = pad.l + pw*(x-xmin)/(xmax-xmin);
+    const py = pad.t + ph*(1-(y-ymin)/(ymax-ymin));
+    i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // Threshold marker
+  ctx.strokeStyle = '#1976d2'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(hx0, pad.t); ctx.lineTo(hx0, pad.t+ph); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = '#1976d2'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('θ='+theta.toFixed(1), hx0+4, pad.t+14);
+
+  // Half-activation point
+  const halfY = pad.t + ph*(1-(0.5-ymin)/(ymax-ymin));
+  ctx.fillStyle = '#e94560'; ctx.beginPath(); ctx.arc(hx0, halfY, 4, 0, 2*Math.PI); ctx.fill();
+
+  // Label
+  ctx.fillStyle = '#333'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('f(x) = 1/(1+e^{-β(x-θ)})', pad.l+10, pad.t+14);
+  ctx.font = '11px system-ui'; ctx.fillStyle = '#999';
+  ctx.fillText('β='+beta+(beta>=25?' (≈ Heaviside)':''), pad.l+10, pad.t+30);
+}
+document.getElementById('sigmoidBeta')?.addEventListener('input', updateSigmoid);
+document.getElementById('sigmoidTheta')?.addEventListener('input', updateSigmoid);
+
+// =====================================================
+// VISUAL 2: Wilson-Cowan Phase Plane & Time Series
+// =====================================================
+let wcAnimId = null;
+let wcState = {E:0.1, I:0.05};
+let wcHistory = {E:[], I:[], t:[]};
+let wcParams = {};
+
+function getWCParams() {
+  return {
+    Wee: parseFloat(document.getElementById('wcWee')?.value||10),
+    Wei: parseFloat(document.getElementById('wcWei')?.value||12),
+    Wie: 10, Wii: 10,
+    tauE: 3, tauI: 8,
+    pE: parseFloat(document.getElementById('wcPe')?.value||0),
+    pI: 0, beta: 10, rE: 0, rI: 0
+  };
+}
+
+function sigmoid(x, beta) { return 1/(1+Math.exp(-beta*x)); }
+
+function wcDerivs(E, I, p) {
+  const dE = (-E + (1-p.rE*E)*sigmoid(p.Wee*E - p.Wei*I + p.pE, p.beta)) / p.tauE;
+  const dI = (-I + (1-p.rI*I)*sigmoid(p.Wie*E - p.Wii*I + p.pI, p.beta)) / p.tauI;
+  return [dE, dI];
+}
+
+function drawPhasePlane() {
+  const canvas = document.getElementById('phasePlaneCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const p = getWCParams();
+  const pad = {l:40, r:10, t:10, b:35};
+  const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+  ctx.clearRect(0,0,W,H);
+
+  // Axes
+  ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+  ctx.fillStyle = '#666'; ctx.font = '11px system-ui';
+  ctx.textAlign = 'center'; ctx.fillText('E (excitatory)', pad.l+pw/2, H-4);
+  ctx.save(); ctx.translate(12,pad.t+ph/2); ctx.rotate(-Math.PI/2); ctx.fillText('I (inhibitory)',0,0); ctx.restore();
+  ctx.textAlign='left';
+  for (let v=0; v<=1; v+=0.5) {
+    ctx.fillText(v.toFixed(1), pad.l+pw*v-6, pad.t+ph+14);
+    ctx.fillText(v.toFixed(1), pad.l-28, pad.t+ph*(1-v)+4);
+  }
+
+  function toCanvas(e,i) { return [pad.l+pw*e, pad.t+ph*(1-i)]; }
+
+  // E-nullcline (dE/dt=0): E = (1-rE*E)*sigmoid(Wee*E - Wei*I + pE)
+  ctx.strokeStyle = '#4caf50'; ctx.lineWidth = 2;
+  ctx.beginPath(); let started=false;
+  for (let ei=0; ei<=200; ei++) {
+    const E = ei/200;
+    // Find I such that dE/dt=0: E = sigmoid(Wee*E - Wei*I + pE)
+    // sigmoid^-1(E) = Wee*E - Wei*I + pE => I = (Wee*E + pE - sigmoid^-1(E))/Wei
+    if (E<=0.001||E>=0.999) continue;
+    const sigInv = -Math.log(1/E-1)/p.beta;
+    const I = (p.Wee*E + p.pE - sigInv)/p.Wei;
+    if (I<0||I>1) { started=false; continue; }
+    const [px,py] = toCanvas(E,I);
+    started ? ctx.lineTo(px,py) : (ctx.moveTo(px,py), started=true);
+  }
+  ctx.stroke();
+
+  // I-nullcline (dI/dt=0)
+  ctx.strokeStyle = '#ff9800'; ctx.lineWidth = 2;
+  ctx.beginPath(); started=false;
+  for (let ei=0; ei<=200; ei++) {
+    const I = ei/200;
+    if (I<=0.001||I>=0.999) continue;
+    const sigInv = -Math.log(1/I-1)/p.beta;
+    const E = (p.Wii*I + p.pI + sigInv)/p.Wie;
+    if (E<0||E>1) { started=false; continue; }
+    const [px,py] = toCanvas(E,I);
+    started ? ctx.lineTo(px,py) : (ctx.moveTo(px,py), started=true);
+  }
+  ctx.stroke();
+
+  // Trajectory trail
+  if (wcHistory.E.length>1) {
+    ctx.strokeStyle = 'rgba(233,69,96,0.3)'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i=0; i<wcHistory.E.length; i++) {
+      const [px,py] = toCanvas(wcHistory.E[i], wcHistory.I[i]);
+      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+
+  // Current state
+  if (wcHistory.E.length>0) {
+    const [px,py] = toCanvas(wcState.E, wcState.I);
+    ctx.fillStyle = '#e94560'; ctx.beginPath(); ctx.arc(px,py,5,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(px,py,2,0,2*Math.PI); ctx.fill();
+  }
+}
+
+function drawTimeSeries() {
+  const canvas = document.getElementById('timeSeriesCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = {l:40, r:10, t:10, b:35};
+  const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+  ctx.fillStyle = '#666'; ctx.font = '11px system-ui'; ctx.textAlign='center';
+  ctx.fillText('Time', pad.l+pw/2, H-4);
+  ctx.textAlign='right';
+  for (let v=0; v<=1; v+=0.5) ctx.fillText(v.toFixed(1), pad.l-6, pad.t+ph*(1-v)+4);
+
+  const len = wcHistory.E.length;
+  if (len<2) return;
+  const maxPts = 600;
+  const startIdx = Math.max(0, len-maxPts);
+
+  // E(t)
+  ctx.strokeStyle = '#e94560'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i=startIdx; i<len; i++) {
+    const px = pad.l + pw*(i-startIdx)/(maxPts);
+    const py = pad.t + ph*(1-wcHistory.E[i]);
+    (i===startIdx) ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // I(t)
+  ctx.strokeStyle = '#1976d2'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i=startIdx; i<len; i++) {
+    const px = pad.l + pw*(i-startIdx)/(maxPts);
+    const py = pad.t + ph*(1-wcHistory.I[i]);
+    (i===startIdx) ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // Labels
+  ctx.font = 'bold 11px system-ui';
+  ctx.fillStyle = '#e94560'; ctx.textAlign='left'; ctx.fillText('E(t)', pad.l+4, pad.t+14);
+  ctx.fillStyle = '#1976d2'; ctx.fillText('I(t)', pad.l+4, pad.t+28);
+}
+
+function wcStep() {
+  const p = getWCParams();
+  const dt = 0.15;
+  // RK4 integration
+  const [k1e,k1i] = wcDerivs(wcState.E, wcState.I, p);
+  const [k2e,k2i] = wcDerivs(wcState.E+dt*k1e/2, wcState.I+dt*k1i/2, p);
+  const [k3e,k3i] = wcDerivs(wcState.E+dt*k2e/2, wcState.I+dt*k2i/2, p);
+  const [k4e,k4i] = wcDerivs(wcState.E+dt*k3e, wcState.I+dt*k3i, p);
+  wcState.E += dt*(k1e+2*k2e+2*k3e+k4e)/6;
+  wcState.I += dt*(k1i+2*k2i+2*k3i+k4i)/6;
+  wcState.E = Math.max(0, Math.min(1, wcState.E));
+  wcState.I = Math.max(0, Math.min(1, wcState.I));
+  wcHistory.E.push(wcState.E);
+  wcHistory.I.push(wcState.I);
+  if (wcHistory.E.length>2000) { wcHistory.E.shift(); wcHistory.I.shift(); }
+}
+
+function wcAnimate() {
+  for (let i=0; i<3; i++) wcStep();
+  drawPhasePlane();
+  drawTimeSeries();
+  wcAnimId = requestAnimationFrame(wcAnimate);
+}
+
+function initWC() {
+  wcState = {E:0.15, I:0.05};
+  wcHistory = {E:[0.15], I:[0.05]};
+  // Update displayed values
+  ['wcWee','wcWei','wcPe'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) document.getElementById(id+'Val').textContent = parseFloat(el.value).toFixed(id==='wcPe'?1:0);
+  });
+  if (wcAnimId) cancelAnimationFrame(wcAnimId);
+  wcAnimate();
+}
+
+function resetWC() {
+  document.getElementById('wcWee').value=10;
+  document.getElementById('wcWei').value=12;
+  document.getElementById('wcPe').value=0;
+  initWC();
+}
+
+['wcWee','wcWei','wcPe'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', function() {
+    document.getElementById(id+'Val').textContent = parseFloat(this.value).toFixed(id==='wcPe'?1:0);
+    wcState = {E:0.15, I:0.05};
+    wcHistory = {E:[0.15], I:[0.05]};
+  });
+});
+
+// =====================================================
+// VISUAL 3: Network Topology Gallery
+// =====================================================
+function getTopoNodes(type, N) {
+  const nodes = [];
+  if (type==='path'||type==='cycle') {
+    for (let i=0; i<N; i++) {
+      const a = 2*Math.PI*i/N - Math.PI/2;
+      nodes.push({x:80+55*Math.cos(a), y:65+50*Math.sin(a)});
+    }
+  } else if (type==='complete') {
+    for (let i=0; i<N; i++) {
+      const a = 2*Math.PI*i/N - Math.PI/2;
+      nodes.push({x:80+55*Math.cos(a), y:65+50*Math.sin(a)});
+    }
+  } else if (type==='lattice') {
+    // 3x3 grid (use 9 nodes for lattice, but we'll do 8 as 2x4)
+    const rows=2, cols=4;
+    for (let r=0; r<rows; r++) for (let c=0; c<cols; c++) {
+      nodes.push({x:20+c*40, y:30+r*70});
+    }
+  }
+  return nodes;
+}
+
+function getTopoEdges(type, N) {
+  const edges = [];
+  if (type==='path') {
+    for (let i=0; i<N-1; i++) edges.push([i,i+1]);
+  } else if (type==='cycle') {
+    for (let i=0; i<N; i++) edges.push([i,(i+1)%N]);
+  } else if (type==='complete') {
+    for (let i=0; i<N; i++) for (let j=i+1; j<N; j++) edges.push([i,j]);
+  } else if (type==='lattice') {
+    const cols=4;
+    for (let i=0; i<N; i++) {
+      if ((i+1)%cols!==0 && i+1<N) edges.push([i,i+1]);
+      if (i+cols<N) edges.push([i,i+cols]);
+    }
+  }
+  return edges;
+}
+
+let topoSignalAnim = null;
+let topoSignalProgress = 0;
+let activeTopoType = 'path';
+
+function drawTopology(canvasId, type, N, highlight, signalNode) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const nodes = getTopoNodes(type, N);
+  const edges = getTopoEdges(type, N);
+
+  // Edges
+  edges.forEach(([a,b]) => {
+    ctx.strokeStyle = highlight ? '#0f3460' : '#bbb';
+    ctx.lineWidth = highlight ? 1.5 : 1;
+    ctx.beginPath(); ctx.moveTo(nodes[a].x, nodes[a].y); ctx.lineTo(nodes[b].x, nodes[b].y); ctx.stroke();
+  });
+
+  // Nodes
+  const degrees = new Array(N).fill(0);
+  edges.forEach(([a,b]) => { degrees[a]++; degrees[b]++; });
+  const maxDeg = Math.max(...degrees);
+
+  nodes.forEach((n,i) => {
+    const intensity = 0.3 + 0.7*(degrees[i]/maxDeg);
+    const isSignal = (signalNode!==undefined && signalNode===i);
+    ctx.beginPath(); ctx.arc(n.x, n.y, isSignal?9:7, 0, 2*Math.PI);
+    if (isSignal) {
+      ctx.fillStyle = '#e94560';
+    } else {
+      ctx.fillStyle = `rgba(15,52,96,${intensity})`;
+    }
+    ctx.fill();
+    ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.stroke();
+  });
+}
+
+function drawAllTopologies() {
+  drawTopology('topoPathCanvas','path',8,activeTopoType==='path');
+  drawTopology('topoCycleCanvas','cycle',8,activeTopoType==='cycle');
+  drawTopology('topoCompleteCanvas','complete',8,activeTopoType==='complete');
+  drawTopology('topoLatticeCanvas','lattice',8,activeTopoType==='lattice');
+}
+
+const topoDescriptions = {
+  path: '<strong>Path Graph:</strong> Nodes connected in a line (1-2-3-...-N). Minimum connectivity. Signals must traverse the entire chain to reach distant nodes, making it highly susceptible to desynchronisation and chaotic dynamics. <em>Conti &amp; Van Gorder (2019), Figs. 6, 8.</em>',
+  cycle: '<strong>Cycle Graph:</strong> Like a path but the ends connect, forming a ring. Slightly better connectivity (degree=2 uniform). Still relatively sparse. Dynamics are more stable than path but less than complete. <em>Conti &amp; Van Gorder (2019), Figs. 6, 9.</em>',
+  complete: '<strong>Complete Graph:</strong> Every node connects to every other. Maximum connectivity (degree=N-1). Most stable topology — produces robust limit cycles and can regularize chaotic dynamics seen on sparser graphs. <em>Conti &amp; Van Gorder (2019), Figs. 6, 8 (chaos regularization).</em>',
+  lattice: '<strong>Square Lattice:</strong> Nodes on a 2D grid, each with 2-4 neighbours. Intermediate connectivity. Represents spatially-organised cortical structure. Shows intermediate stability. <em>Conti &amp; Van Gorder (2019), Figs. 6, 7.</em>'
+};
+
+function selectTopo(type) {
+  activeTopoType = type;
+  document.querySelectorAll('.topo-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('topo-'+type)?.classList.add('active');
+  document.getElementById('topoInfo').innerHTML = topoDescriptions[type];
+  drawAllTopologies();
+}
+
+function animateTopoSignal() {
+  if (topoSignalAnim) cancelAnimationFrame(topoSignalAnim);
+  const type = activeTopoType;
+  const N = 8;
+  const canvasId = 'topo'+type.charAt(0).toUpperCase()+type.slice(1)+'Canvas';
+  let step = 0;
+  const totalSteps = type==='complete' ? 15 : 40;
+  const edges = getTopoEdges(type, N);
+  // BFS from node 0
+  const visited = new Set([0]);
+  const queue = [{node:0, dist:0}];
+  const nodeDistances = new Array(N).fill(Infinity);
+  nodeDistances[0] = 0;
+  while (queue.length) {
+    const {node, dist} = queue.shift();
+    edges.forEach(([a,b]) => {
+      const neighbor = a===node?b:b===node?a:-1;
+      if (neighbor>=0 && !visited.has(neighbor)) {
+        visited.add(neighbor);
+        nodeDistances[neighbor] = dist+1;
+        queue.push({node:neighbor, dist:dist+1});
+      }
+    });
+  }
+  const maxDist = Math.max(...nodeDistances.filter(d=>d<Infinity));
+
+  function animate() {
+    const progress = step/totalSteps;
+    const currentReach = progress * maxDist;
+    // Draw base
+    drawTopology(canvasId, type, N, true);
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const nodes = getTopoNodes(type, N);
+    // Highlight reached nodes
+    nodes.forEach((n,i) => {
+      if (nodeDistances[i] <= currentReach) {
+        ctx.beginPath(); ctx.arc(n.x, n.y, 9, 0, 2*Math.PI);
+        const alpha = Math.max(0, 1 - (currentReach - nodeDistances[i])/2);
+        ctx.fillStyle = `rgba(233,69,96,${0.4+0.6*alpha})`;
+        ctx.fill();
+        ctx.strokeStyle='white'; ctx.lineWidth=2; ctx.stroke();
+      }
+    });
+    step++;
+    if (step<=totalSteps) topoSignalAnim = requestAnimationFrame(animate);
+    else { setTimeout(()=>drawAllTopologies(), 800); }
+  }
+  animate();
+}
+
+// =====================================================
+// VISUAL 4: Next Gen Model Signal Flow Diagram + Sim
+// =====================================================
+function drawSignalFlowDiagram() {
+  const canvas = document.getElementById('signalFlowCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#fafafa'; ctx.fillRect(0,0,W,H);
+
+  // === LEFT SIDE: Circuit diagram ===
+  const LW = 440; // left panel width
+
+  // E and I boxes (bigger, cleaner)
+  const eBox = {x:50, y:60, w:150, h:100};
+  const iBox = {x:250, y:60, w:150, h:100};
+
+  // E box
+  ctx.fillStyle='#fce4ec'; ctx.strokeStyle='#e94560'; ctx.lineWidth=2.5;
+  roundRect(ctx,eBox.x,eBox.y,eBox.w,eBox.h,10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#c62828'; ctx.font='bold 16px system-ui'; ctx.textAlign='center';
+  ctx.fillText('E population', eBox.x+eBox.w/2, eBox.y+30);
+  ctx.fillStyle='#555'; ctx.font='13px system-ui';
+  ctx.fillText('R\u2091  (firing rate)', eBox.x+eBox.w/2, eBox.y+55);
+  ctx.fillText('V\u2091  (voltage)', eBox.x+eBox.w/2, eBox.y+75);
+  ctx.fillStyle='#aaa'; ctx.font='italic 10px system-ui';
+  ctx.fillText('+ 4 synaptic: g,s', eBox.x+eBox.w/2, eBox.y+92);
+
+  // I box
+  ctx.fillStyle='#e3f2fd'; ctx.strokeStyle='#1976d2'; ctx.lineWidth=2.5;
+  roundRect(ctx,iBox.x,iBox.y,iBox.w,iBox.h,10); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#0d47a1'; ctx.font='bold 16px system-ui'; ctx.textAlign='center';
+  ctx.fillText('I population', iBox.x+iBox.w/2, iBox.y+30);
+  ctx.fillStyle='#555'; ctx.font='13px system-ui';
+  ctx.fillText('R\u1d62  (firing rate)', iBox.x+iBox.w/2, iBox.y+55);
+  ctx.fillText('V\u1d62  (voltage)', iBox.x+iBox.w/2, iBox.y+75);
+  ctx.fillStyle='#aaa'; ctx.font='italic 10px system-ui';
+  ctx.fillText('+ 4 synaptic: g,s', iBox.x+iBox.w/2, iBox.y+92);
+
+  // Chemical synapse arrows
+  function curvedArrow(x1,y1,x2,y2,color,label,curveAmt,labelSide) {
+    const dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    const mx=(x1+x2)/2+curveAmt*(dy/len), my=(y1+y2)/2-curveAmt*(dx/len);
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(mx,my,x2,y2); ctx.stroke();
+    const t=0.92;
+    const ax=(1-t)*(1-t)*x1+2*(1-t)*t*mx+t*t*x2;
+    const ay=(1-t)*(1-t)*y1+2*(1-t)*t*my+t*t*y2;
+    const ang=Math.atan2(y2-ay,x2-ax);
+    ctx.fillStyle=color; ctx.beginPath(); ctx.moveTo(x2,y2);
+    ctx.lineTo(x2-12*Math.cos(ang-.3),y2-12*Math.sin(ang-.3));
+    ctx.lineTo(x2-12*Math.cos(ang+.3),y2-12*Math.sin(ang+.3));
+    ctx.closePath(); ctx.fill();
+    ctx.font='bold 12px system-ui'; ctx.textAlign='center';
+    const lx=mx, ly=my+labelSide*16;
+    const tw=ctx.measureText(label).width+10;
+    ctx.fillStyle='rgba(255,255,255,0.9)';
+    ctx.fillRect(lx-tw/2,ly-11,tw,16);
+    ctx.fillStyle=color; ctx.fillText(label,lx,ly);
+  }
+
+  // 4 chemical synapses
+  curvedArrow(eBox.x+20,eBox.y, eBox.x+eBox.w-20,eBox.y, '#c62828','E\u2192E (g\u2091\u2091)', -35,-1);
+  curvedArrow(eBox.x+eBox.w,eBox.y+35, iBox.x,iBox.y+35, '#e94560','E\u2192I (g\u1d62\u2091)', -28,-1);
+  curvedArrow(iBox.x,iBox.y+70, eBox.x+eBox.w,eBox.y+70, '#1976d2','I\u2192E (g\u2091\u1d62)', 28, 1);
+  curvedArrow(iBox.x+20,iBox.y+iBox.h, iBox.x+iBox.w-20,iBox.y+iBox.h, '#0d47a1','I\u2192I (g\u1d62\u1d62)', 35, 1);
+
+  // Gap junctions
+  ctx.setLineDash([5,4]); ctx.lineWidth=2.5;
+  ctx.strokeStyle='#7b1fa2';
+  ctx.beginPath(); ctx.moveTo(eBox.x,eBox.y+35); ctx.lineTo(eBox.x-22,eBox.y+35);
+  ctx.lineTo(eBox.x-22,eBox.y+65); ctx.lineTo(eBox.x,eBox.y+65); ctx.stroke();
+  ctx.fillStyle='#7b1fa2'; ctx.font='bold 11px system-ui'; ctx.textAlign='right';
+  ctx.fillText('\u03ba\u1d65\u1d31\u1d31', eBox.x-26, eBox.y+54);
+
+  ctx.beginPath(); ctx.moveTo(iBox.x+iBox.w,iBox.y+35); ctx.lineTo(iBox.x+iBox.w+22,iBox.y+35);
+  ctx.lineTo(iBox.x+iBox.w+22,iBox.y+65); ctx.lineTo(iBox.x+iBox.w,iBox.y+65); ctx.stroke();
+  ctx.fillStyle='#7b1fa2'; ctx.textAlign='left';
+  ctx.fillText('\u03ba\u1d65\u1d35\u1d35', iBox.x+iBox.w+26, iBox.y+54);
+  ctx.setLineDash([]);
+
+  // === RIGHT SIDE: Equation mapping ===
+  const rx = 470; // right panel start
+  const rw = W - rx - 10;
+
+  // Divider line
+  ctx.strokeStyle='#ddd'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(LW+10, 10); ctx.lineTo(LW+10, H-10); ctx.stroke();
+
+  // Title
+  ctx.fillStyle='#333'; ctx.font='bold 14px system-ui'; ctx.textAlign='left';
+  ctx.fillText('Equation Mapping', rx, 28);
+  ctx.fillStyle='#888'; ctx.font='italic 11px system-ui';
+  ctx.fillText('Forrester et al. (2024), Eqs. 7-9', rx, 44);
+
+  // Equation entries
+  const eqs = [
+    {color:'#c62828', num:'Eq. 7', label:'R\u2091 equation (firing rate)',
+     eq:'\u03c4\u2091 dR\u2091/dt = \u2212R\u2091\u2211(g+\u03ba\u1d65) + 2R\u2091V\u2091 + \u0394\u2091/(\u03c0\u03c4\u2091)'},
+    {color:'#0d47a1', num:'Eq. 7', label:'R\u1d62 equation (firing rate)',
+     eq:'same form for inhibitory population'},
+    {color:'#c62828', num:'Eq. 8', label:'V\u2091 equation (voltage)',
+     eq:'\u03c4\u2091 dV\u2091/dt = \u03b7\u2080 + V\u00b2 \u2212 \u03c0\u00b2\u03c4\u00b2R\u00b2 + \u2211g(v\u209b\u2099\u2212V) + \u2211\u03ba\u1d65(V\u2092\u2212V)'},
+    {color:'#0d47a1', num:'Eq. 8', label:'V\u1d62 equation (voltage)',
+     eq:'same form for inhibitory population'},
+    {color:'#ff9800', num:'Eq. 9a', label:'Conductance (4\u00d7)',
+     eq:'dg\u2090\u2092/dt = \u03b1(s\u2090\u2092 \u2212 g\u2090\u2092)'},
+    {color:'#4caf50', num:'Eq. 9b', label:'Gating variable (4\u00d7)',
+     eq:'ds\u2090\u2092/dt = \u03b1(\u03ba\u209b R\u2092 \u2212 s\u2090\u2092)'},
+  ];
+
+  let ey = 64;
+  eqs.forEach((e,i) => {
+    // Colored bar
+    ctx.fillStyle = e.color; ctx.fillRect(rx, ey, 4, 36);
+    // Eq number badge
+    ctx.fillStyle = e.color+'22'; ctx.strokeStyle = e.color;
+    ctx.lineWidth=1;
+    roundRect(ctx, rx+10, ey, 42, 16, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = e.color; ctx.font='bold 9px system-ui'; ctx.textAlign='center';
+    ctx.fillText(e.num, rx+31, ey+12);
+    // Label
+    ctx.fillStyle='#333'; ctx.font='bold 11px system-ui'; ctx.textAlign='left';
+    ctx.fillText(e.label, rx+58, ey+12);
+    // Equation
+    ctx.fillStyle='#666'; ctx.font='11px monospace';
+    ctx.fillText(e.eq, rx+10, ey+32);
+    ey += 48;
+  });
+
+  // Variable count summary
+  ey += 8;
+  ctx.fillStyle='#f5f5f5'; ctx.strokeStyle='#ddd'; ctx.lineWidth=1;
+  roundRect(ctx, rx, ey, rw, 80, 8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#333'; ctx.font='bold 12px system-ui'; ctx.textAlign='left';
+  ctx.fillText('Total: 12 ODEs per node', rx+12, ey+20);
+  ctx.font='11px system-ui'; ctx.fillStyle='#555';
+  ctx.fillText('2\u00d7 R  (firing rates)', rx+12, ey+38);
+  ctx.fillText('2\u00d7 V  (voltages)', rx+12, ey+53);
+  ctx.fillText('4\u00d7 g  (conductances: EE,EI,IE,II)', rx+12, ey+68);
+  ctx.fillText('4\u00d7 s  (gating vars: EE,EI,IE,II)', rx+170, ey+68);
+
+  // Synaptic pipeline at very bottom
+  const py = H - 80;
+  ctx.fillStyle='#333'; ctx.font='bold 12px system-ui'; ctx.textAlign='center';
+  ctx.fillText('Synaptic signal chain (for each of the 4 pathways):', W/2, py);
+
+  const steps = [
+    {label:'Presynaptic R\u2092 fires', color:'#e94560'},
+    {label:'\u03ba\u209b scales input', color:'#ff9800'},
+    {label:'s\u2090\u2092 rises (Eq. 9b)', color:'#4caf50'},
+    {label:'g\u2090\u2092 opens (Eq. 9a)', color:'#1976d2'},
+    {label:'Current \u2192 V\u2090 (Eq. 8)', color:'#333'},
+  ];
+  const stepW=155, stepH=30, gap=8;
+  const totalStepW=steps.length*(stepW+gap)-gap;
+  const startX=(W-totalStepW)/2;
+
+  steps.forEach((s,i) => {
+    const sx=startX+i*(stepW+gap);
+    ctx.fillStyle=s.color+'15'; ctx.strokeStyle=s.color; ctx.lineWidth=1.5;
+    roundRect(ctx,sx,py+12,stepW,stepH,6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=s.color; ctx.font='bold 11px system-ui'; ctx.textAlign='center';
+    ctx.fillText(s.label, sx+stepW/2, py+31);
+    if (i<steps.length-1) {
+      ctx.fillStyle='#bbb'; ctx.beginPath();
+      const ax=sx+stepW+1, ay=py+27;
+      ctx.moveTo(ax,ay-4); ctx.lineTo(ax+6,ay); ctx.lineTo(ax,ay+4); ctx.closePath(); ctx.fill();
+    }
+  });
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+// Next Gen simulation
+let ngAnimId = null;
+let ngState = null;
+let ngHistory = {RE:[], RI:[], VE:[], VI:[], t:[]};
+
+function ngDerivs(s, p) {
+  const {RE,RI,VE,VI,gEE,gEI,gIE,gII,sEE,sEI,sIE,sII} = s;
+  const tauE=p.tauE, tauI=p.tauI;
+  const sumGE = gEE + gEI + p.kvEE + p.kvEI;
+  const sumGI = gIE + gII + p.kvIE + p.kvII;
+  const dRE = (-RE*sumGE + 2*RE*VE + p.deltaE/(Math.PI*tauE)) / tauE;
+  const dRI = (-RI*sumGI + 2*RI*VI + p.deltaI/(Math.PI*tauI)) / tauI;
+  const dVE = (p.eta0E + VE*VE - Math.PI*Math.PI*tauE*tauE*RE*RE
+    + gEE*(p.vsynE-VE) + gEI*(p.vsynI-VE)
+    + p.kvEE*(VE-VE) + p.kvEI*(VI-VE)) / tauE;
+  const dVI = (p.eta0I + VI*VI - Math.PI*Math.PI*tauI*tauI*RI*RI
+    + gIE*(p.vsynE-VI) + gII*(p.vsynI-VI)
+    + p.kvIE*(VE-VI) + p.kvII*(VI-VI)) / tauI;
+  const aEE=p.alphaEE, aEI=p.alphaEI, aIE=p.alphaIE, aII=p.alphaII;
+  return {
+    dRE, dRI, dVE, dVI,
+    dgEE: aEE*(sEE-gEE), dgEI: aEI*(sEI-gEI),
+    dgIE: aIE*(sIE-gIE), dgII: aII*(sII-gII),
+    dsEE: aEE*(p.ksEE*RE-sEE), dsEI: aEI*(p.ksEI*RI-sEI),
+    dsIE: aIE*(p.ksIE*RE-sIE), dsII: aII*(p.ksII*RI-sII)
+  };
+}
+
+function getNGParams() {
+  return {
+    tauE:0.011, tauI:0.012,
+    eta0E: parseFloat(document.getElementById('ngEta')?.value||3),
+    eta0I:-2.5,
+    deltaE:0.5, deltaI:0.5,
+    alphaEE:50, alphaEI:40, alphaIE:50, alphaII:40,
+    ksEE:0.5, ksEI:0.3, ksIE:0.7, ksII:0.3,
+    vsynE:10, vsynI:-10,
+    kvEE:0.01, kvEI:0, kvIE:0,
+    kvII: parseFloat(document.getElementById('ngKv')?.value||0.025)
+  };
+}
+
+function ngStep(dt) {
+  const p = getNGParams();
+  const keys = ['RE','RI','VE','VI','gEE','gEI','gIE','gII','sEE','sEI','sIE','sII'];
+  const dkeys = keys.map(k=>'d'+k);
+
+  // RK4
+  const k1 = ngDerivs(ngState, p);
+  const s2 = {}; keys.forEach((k,i)=> s2[k] = ngState[k] + dt*k1[dkeys[i]]/2);
+  const k2 = ngDerivs(s2, p);
+  const s3 = {}; keys.forEach((k,i)=> s3[k] = ngState[k] + dt*k2[dkeys[i]]/2);
+  const k3 = ngDerivs(s3, p);
+  const s4 = {}; keys.forEach((k,i)=> s4[k] = ngState[k] + dt*k3[dkeys[i]]);
+  const k4 = ngDerivs(s4, p);
+
+  keys.forEach((k,i) => {
+    ngState[k] += dt*(k1[dkeys[i]] + 2*k2[dkeys[i]] + 2*k3[dkeys[i]] + k4[dkeys[i]])/6;
+  });
+  ngState.RE = Math.max(0, ngState.RE);
+  ngState.RI = Math.max(0, ngState.RI);
+}
+
+function drawNGTimeSeries() {
+  const canvas = document.getElementById('ngTimeSeriesCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = {l:50, r:10, t:10, b:30};
+  const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+
+  // Axes
+  ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+ph); ctx.lineTo(pad.l+pw,pad.t+ph); ctx.stroke();
+  ctx.fillStyle='#666'; ctx.font='11px system-ui'; ctx.textAlign='center';
+  ctx.fillText('Time (s)', pad.l+pw/2, H-4);
+
+  const len = ngHistory.RE.length;
+  if (len<2) return;
+  const maxPts = 800;
+  const start = Math.max(0, len-maxPts);
+
+  // Auto-scale for R
+  let rMax = 0;
+  for (let i=start; i<len; i++) {
+    rMax = Math.max(rMax, ngHistory.RE[i], ngHistory.RI[i]);
+  }
+  rMax = Math.max(rMax*1.1, 1);
+
+  // Split canvas: top half = R, bottom half = V
+  const halfH = ph/2;
+
+  // R panel
+  ctx.fillStyle='#999'; ctx.font='10px system-ui'; ctx.textAlign='right';
+  ctx.fillText('R', pad.l-4, pad.t+10);
+  ctx.fillText(rMax.toFixed(0), pad.l-4, pad.t+halfH-4);
+
+  const colors = {RE:'#e94560', RI:'#1976d2', VE:'#4caf50', VI:'#ff9800'};
+
+  // RE
+  ctx.strokeStyle = colors.RE; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i=start; i<len; i++) {
+    const px = pad.l + pw*(i-start)/maxPts;
+    const py = pad.t + halfH*(1 - ngHistory.RE[i]/rMax);
+    (i===start) ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // RI
+  ctx.strokeStyle = colors.RI; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i=start; i<len; i++) {
+    const px = pad.l + pw*(i-start)/maxPts;
+    const py = pad.t + halfH*(1 - ngHistory.RI[i]/rMax);
+    (i===start) ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // V panel
+  let vMin=Infinity, vMax=-Infinity;
+  for (let i=start; i<len; i++) {
+    vMin = Math.min(vMin, ngHistory.VE[i], ngHistory.VI[i]);
+    vMax = Math.max(vMax, ngHistory.VE[i], ngHistory.VI[i]);
+  }
+  const vRange = Math.max(vMax-vMin, 1);
+
+  ctx.fillText('V', pad.l-4, pad.t+halfH+14);
+  ctx.strokeStyle='#eee'; ctx.lineWidth=0.5;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t+halfH); ctx.lineTo(pad.l+pw,pad.t+halfH); ctx.stroke();
+
+  // VE
+  ctx.strokeStyle = colors.VE; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i=start; i<len; i++) {
+    const px = pad.l + pw*(i-start)/maxPts;
+    const py = pad.t + halfH + halfH*(1 - (ngHistory.VE[i]-vMin)/vRange);
+    (i===start) ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // VI
+  ctx.strokeStyle = colors.VI; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i=start; i<len; i++) {
+    const px = pad.l + pw*(i-start)/maxPts;
+    const py = pad.t + halfH + halfH*(1 - (ngHistory.VI[i]-vMin)/vRange);
+    (i===start) ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+}
+
+function ngAnimate() {
+  const dt = 0.0001; // 0.1 ms steps
+  for (let i=0; i<20; i++) {
+    ngStep(dt);
+    ngHistory.RE.push(ngState.RE);
+    ngHistory.RI.push(ngState.RI);
+    ngHistory.VE.push(ngState.VE);
+    ngHistory.VI.push(ngState.VI);
+  }
+  if (ngHistory.RE.length>3000) {
+    ngHistory.RE.splice(0,20); ngHistory.RI.splice(0,20);
+    ngHistory.VE.splice(0,20); ngHistory.VI.splice(0,20);
+  }
+  drawNGTimeSeries();
+  // Update signal flow colours based on current R
+  const canvas = document.getElementById('signalFlowCanvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    const eIntensity = Math.min(1, ngState.RE/50);
+    const iIntensity = Math.min(1, ngState.RI/50);
+    // Pulse indicator on E box
+    ctx.fillStyle = `rgba(233,69,96,${eIntensity*0.4})`;
+    ctx.fillRect(82, 62, 156, 96);
+    ctx.fillStyle = `rgba(25,118,210,${iIntensity*0.4})`;
+    ctx.fillRect(282, 62, 156, 96);
+  }
+  ngAnimId = requestAnimationFrame(ngAnimate);
+}
+
+function startNGSimulation() {
+  if (ngAnimId) cancelAnimationFrame(ngAnimId);
+  ngState = {RE:1, RI:0.5, VE:-1, VI:-2, gEE:0, gEI:0, gIE:0, gII:0, sEE:0, sEI:0, sIE:0, sII:0};
+  ngHistory = {RE:[], RI:[], VE:[], VI:[]};
+  drawSignalFlowDiagram();
+  ngAnimate();
+}
+
+function stopNGSimulation() {
+  if (ngAnimId) { cancelAnimationFrame(ngAnimId); ngAnimId=null; }
+}
+
+['ngEta','ngKv'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', function() {
+    const fmt = id==='ngKv' ? 3 : 1;
+    document.getElementById(id+'Val').textContent = parseFloat(this.value).toFixed(fmt);
+  });
+});
+</script>
+
+</body>
+</html>
