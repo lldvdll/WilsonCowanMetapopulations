@@ -5,16 +5,16 @@ model_params:
   c_ei: 1  # Intra-node E to I coupling (Synaptic weights)
   c_ie: -1  # Intra-node I to E coupling (Synaptic weights)
   c_ii: -1  # Inter-node I to I coupling (Synaptic weights)
-  tau_ie: 1  # Intra-node I to E delay
-  tau_ei: 1.4  # Intra-node E to I delay
-  rho_ie: 10  # Inter-node I to E delay
-  rho_ei: 10  # Inter-node E to I delay
-  beta: 10  # 
+  tau_1: 1.0  # intra-node same-type delay (E->E, I->I)
+  tau_2: 1.4  # intra-node cross-type delay (E->I, I->E)
+  rho: 10  # Inter-node E to E coupling delay
+  beta: 10   # Sigmoid
   alpha: 0.6  # relative node-dependent dimensionless timescale between the two subpopulations
   P: 0.5  # external stimuli acting on each excitatory subpopulation
   Q: 0.5  # external stimuli acting on each inhibitory subpopulation
   T_e: 1  # global temporal conversion factor
   T_i: 1  #global temporal conversion factor
+  k: 1  # inter-node coupling strength 
 
 
 network_params:
