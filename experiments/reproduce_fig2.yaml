@@ -1,0 +1,26 @@
+---
+model_params:
+  mode: "wilson_cowan"  # Model to use
+  c_ee: 1  # Inter-node E to E coupling (Synaptic weights)
+  c_ei: 1  # Intra-node E to I coupling (Synaptic weights)
+  c_ie: -1  # Intra-node I to E coupling (Synaptic weights)
+  c_ii: -1  # Inter-node I to I coupling (Synaptic weights)
+  tau_1: 1.0  # intra-node same-type delay (E->E, I->I)
+  tau_2: 1.4  # intra-node cross-type delay (E->I, I->E)
+  rho: 10  # Inter-node E to E coupling delay
+  beta: 10   # Sigmoid
+  alpha: 0.6  # relative node-dependent dimensionless timescale between the two subpopulations
+  P: 0.5  # external stimuli acting on each excitatory subpopulation
+  Q: 0.5  # external stimuli acting on each inhibitory subpopulation
+  T_e: 1  # global temporal conversion factor
+  T_i: 1  #global temporal conversion factor
+  k: 1  # inter-node coupling strength 
+
+
+network_params:
+  topology: line  # line, lattice, ring, full, smallworld
+  self_delay: 0.25  # inter-node delay
+  node_distance: 1  # intra-node distance
+  signal_velocity: 2  # intra-node velocity
+  N: 2  # Number of network nodes
+  p: 0.2  # For ring network, proportion of neighbours
