@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seizures, CFC & Neural Networks</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,600;6..72,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d12;--sf:#12151c;--sf2:#181c26;--bd:#232837;--tx:#b8bfce;--txd:#5e6577;--txb:#e2e7f0;--ac:#3d8bfd;--acg:rgba(61,139,253,.12);--ok:#1ec06d;--wn:#e8a317;--dn:#e84040;--serif:'Newsreader',Georgia,serif;--sans:'Outfit',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace;--r:10px;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--tx);font-family:var(--sans);font-size:15.5px;line-height:1.75;}
+
+header{padding:50px 40px 30px;max-width:1080px;margin:0 auto;border-bottom:1px solid var(--bd);}
+header h1{font-family:var(--serif);font-size:2.2rem;font-weight:700;color:var(--txb);letter-spacing:-.02em;line-height:1.25;}
+header h1 em{color:var(--ac);font-style:normal;}
+header .sub{margin-top:8px;color:var(--txd);font-family:var(--mono);font-size:.8rem;}
+
+nav.tabs{position:sticky;top:0;z-index:200;background:rgba(11,13,18,.93);backdrop-filter:blur(14px);border-bottom:1px solid var(--bd);max-width:1080px;margin:0 auto;padding:0 40px;}
+nav.tabs ul{list-style:none;display:flex;overflow-x:auto;}
+nav.tabs a{display:block;padding:13px 18px;color:var(--txd);text-decoration:none;font-size:.76rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;border-bottom:2px solid transparent;transition:.25s;white-space:nowrap;}
+nav.tabs a:hover,nav.tabs a.active{color:var(--ac);border-bottom-color:var(--ac);}
+
+.sw{max-width:1080px;margin:0 auto;padding:44px 40px;}.sw+.sw{border-top:1px solid var(--bd);}
+h2.st{font-family:var(--serif);font-size:1.65rem;font-weight:600;color:var(--txb);margin-bottom:6px;}
+p.sd{color:var(--txd);margin-bottom:24px;max-width:680px;font-size:.92rem;}
+
+.kt{color:var(--ac);font-weight:600;cursor:help;border-bottom:1px dashed rgba(61,139,253,.4);position:relative;}
+.tip-box{display:none;position:fixed;background:#1e2230;border:1px solid var(--bd);border-radius:8px;padding:10px 14px;font-size:.82rem;font-weight:400;color:var(--tx);line-height:1.55;max-width:300px;z-index:600;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none;}
+
+.acc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:9px;overflow:hidden;}
+.acc:hover{border-color:#2e3448;}
+.acch{display:flex;align-items:center;gap:11px;padding:14px 18px;cursor:pointer;user-select:none;}
+.badge{font-family:var(--mono);font-size:.66rem;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--acg);color:var(--ac);white-space:nowrap;}
+.acch .t{font-weight:600;font-size:.95rem;color:var(--txb);flex:1;}
+.chev{width:16px;height:16px;transition:transform .35s;color:var(--txd);flex-shrink:0;}
+.acc.open .chev{transform:rotate(180deg);}
+.accb{max-height:0;overflow:hidden;transition:max-height .5s ease;}
+.accc{padding:0 18px 18px;color:var(--tx);line-height:1.85;font-size:.91rem;}
+.accc p{margin-bottom:11px;}.accc p:last-child{margin-bottom:0;}
+.ref{font-size:.72rem;color:var(--txd);font-family:var(--mono);vertical-align:super;}
+.eq{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:11px 15px;margin:11px 0;font-family:var(--mono);font-size:.82rem;color:var(--txb);overflow-x:auto;white-space:pre-wrap;}
+
+.ls-btn-row{display:flex;gap:6px;margin-bottom:8px;}
+.ls-btn{flex:1;padding:9px 6px;background:var(--sf);border:1px solid var(--bd);border-radius:6px;cursor:pointer;text-align:center;font-family:var(--mono);font-size:.7rem;font-weight:600;color:var(--txd);transition:.25s;}
+.ls-btn:hover{border-color:var(--ac);color:var(--ac);}.ls-btn.on{background:var(--acg);border-color:var(--ac);color:var(--ac);}
+.cfc-exp{background:rgba(61,139,253,.04);border-left:3px solid var(--ac);padding:12px 16px;border-radius:0 var(--r) var(--r) 0;margin-bottom:10px;font-size:.88rem;line-height:1.75;min-height:50px;}
+
+canvas.wc{width:100%;height:150px;background:var(--bg);border-radius:6px;display:block;}
+canvas.wc.tall{height:190px;}
+canvas.comod{width:100%;height:250px;background:var(--bg);border-radius:6px;display:block;}
+canvas.nc{width:100%;height:320px;background:var(--bg);border-radius:6px;display:block;margin-bottom:10px;}
+
+.sr{display:flex;align-items:center;gap:11px;margin-bottom:7px;}
+.sr label{font-size:.76rem;font-weight:600;color:var(--txd);min-width:140px;font-family:var(--mono);}
+.sr input[type=range]{flex:1;accent-color:var(--ac);height:5px;}
+.sr .v{font-family:var(--mono);font-size:.76rem;color:var(--txb);min-width:45px;text-align:right;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.73rem;font-family:var(--mono);}
+.li{display:flex;align-items:center;gap:5px;}.ld{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.hbar{height:6px;border-radius:4px;background:var(--sf2);margin:10px 0 3px;overflow:hidden;}
+.hbar-f{height:100%;border-radius:4px;transition:width .4s,background .4s;}
+.hlbl{font-family:var(--mono);font-size:.73rem;font-weight:600;display:flex;justify-content:space-between;margin-bottom:6px;}
+
+.guide-box{background:var(--sf);border:2px solid var(--ac);border-radius:var(--r);padding:18px;margin-bottom:14px;}
+.guide-box h3{font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--ac);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;}
+.guide-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:.88rem;}
+.guide-step:last-child{margin-bottom:0;}
+.guide-num{font-family:var(--mono);font-size:.72rem;font-weight:600;color:var(--bg);background:var(--ac);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+
+.nbtn-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.nbtn{padding:6px 13px;border:1px solid var(--bd);border-radius:6px;background:var(--sf2);color:var(--tx);font-family:var(--mono);font-size:.74rem;cursor:pointer;transition:.2s;}
+.nbtn:hover{border-color:var(--ac);color:var(--ac);}.nbtn.on{background:var(--acg);border-color:var(--ac);color:var(--ac);}
+.tl-bar{display:flex;height:28px;border-radius:6px;overflow:hidden;border:1px solid var(--bd);margin-bottom:12px;}
+.tl-seg{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.66rem;font-weight:600;color:var(--txd);background:var(--sf);transition:.4s;border-right:1px solid var(--bd);}.tl-seg:last-child{border-right:none;}
+.tl-seg.reached{background:rgba(232,64,64,.1);color:var(--dn);}.tl-seg.current{background:var(--acg);color:var(--ac);}
+
+.card{background:linear-gradient(135deg,var(--sf),var(--sf2));border:1px solid var(--bd);border-radius:var(--r);padding:24px;margin-top:12px;}
+.card h3{font-family:var(--serif);color:var(--txb);margin-bottom:10px;font-size:1.05rem;}
+.pm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+.pm-i{background:var(--bg);border:1px solid var(--bd);border-radius:6px;padding:10px 13px;}
+.pm-l{font-family:var(--mono);font-size:.7rem;color:var(--ac);margin-bottom:2px;}
+.pm-d{font-size:.82rem;color:var(--tx);line-height:1.6;}
+.refs{margin-top:24px;padding-top:16px;border-top:1px solid var(--bd);}
+.refs h3{font-family:var(--serif);color:var(--txb);margin-bottom:8px;}
+.refs ol{padding-left:18px;font-size:.8rem;color:var(--txd);line-height:1.85;}
+
+@media(max-width:700px){header{padding:24px 16px;}header h1{font-size:1.5rem;}.sw{padding:24px 16px;}nav.tabs{padding:0 12px;}nav.tabs a{padding:10px 10px;font-size:.68rem;}.sr{flex-wrap:wrap;}.sr label{min-width:100%;}.pm{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="tip-box" id="tipBox"></div>
+
+<header>
+  <h1>Seizures, <em>Cross-Frequency Coupling</em> & Neural Network Dynamics</h1>
+  <p class="sub">// interactive guide · computational neuroscience · MSc project resource</p>
+</header>
+
+<nav class="tabs"><ul>
+  <li><a href="#s1" class="active">Neuroscience</a></li>
+  <li><a href="#s2">CFC & EEG</a></li>
+  <li><a href="#s3">Networks & DDEs</a></li>
+  <li><a href="#s4">References</a></li>
+</ul></nav>
+
+<!-- ══════════ S1 ══════════ -->
+<div class="sw" id="s1">
+<h2 class="st">The Neuroscience of Seizures</h2>
+<p class="sd">Seven levels of explanation, each building on the last. Hover <span style="color:var(--ac)">highlighted terms</span> for definitions.</p>
+<div id="accC"></div>
+</div>
+
+<!-- ══════════ S2 ══════════ -->
+<div class="sw" id="s2">
+<h2 class="st">Cross-Frequency Coupling & EEG</h2>
+<p class="sd">Step through four stages of seizure activity. Each lesson updates the simulation below.</p>
+
+<details style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px;">
+  <summary style="padding:13px 18px;cursor:pointer;font-weight:600;font-size:.9rem;color:var(--txb);">
+    <span class="badge" style="margin-right:8px;">Background</span> What is an EEG and how do doctors read it?
+  </summary>
+  <div style="padding:4px 18px 18px;font-size:.89rem;line-height:1.8;">
+    <p>An <span class="kt" data-tip="Electroencephalogram — records brain electrical activity via electrodes on the scalp or brain surface.">EEG</span> (electroencephalogram) records the brain's electrical activity through electrodes. It captures the combined electrical output of millions of neurons beneath each electrode, producing a time-varying voltage trace — the "brain waves" you see in the simulations below.</p>
+    <p style="margin-top:10px;"><strong>What neurologists look for when reading an EEG:</strong></p>
+    <p><strong>Interictal epileptiform discharges (IEDs):</strong> Brief sharp-wave transients that stand out from the background rhythm. These occur between seizures and are the primary diagnostic marker — they indicate where the <span class="kt" data-tip="The specific region of brain tissue where seizures originate.">epileptogenic zone</span> is. On the combined EEG simulation below, you'll see these annotated when they appear.</p>
+    <p><strong>Seizure onset patterns:</strong> When a seizure begins, the doctor sees one of two characteristic patterns: (a) low-voltage fast activity (LVFA) — rapid, low-amplitude oscillations that gradually grow, suggesting a <span class="kt" data-tip="A bifurcation type where oscillations emerge gradually from zero amplitude.">Hopf bifurcation</span> onset; or (b) spike-and-wave discharges (SWDs) — high-amplitude sharp transients repeating at 2–4 Hz, suggesting a <span class="kt" data-tip="A bifurcation type where the stable state suddenly vanishes.">saddle-node</span> onset. The pattern informs treatment decisions <span class="ref">[5]</span>.</p>
+    <p><strong>High-frequency oscillations (in research settings):</strong> With intracranial electrodes, researchers detect pathological HFOs — particularly <span class="kt" data-tip="250–500 Hz oscillations from tiny clusters of ~50–200 neurons firing in lockstep. The strongest biomarker of the epileptogenic zone.">fast ripples</span> at 250–500 Hz — that are the strongest known biomarker of seizure-generating tissue <span class="ref">[12]</span>.</p>
+    <p>The simulations below show a simplified single-channel view. Clinical EEGs record 20+ channels simultaneously to spatially map the activity.</p>
+  </div>
+</details>
+
+<!-- LESSON BUTTONS + EXPLANATION -->
+<div class="ls-btn-row">
+  <div class="ls-btn on" onclick="playL(0)">① Normal PAC</div>
+  <div class="ls-btn" onclick="playL(1)">② Pre-ictal</div>
+  <div class="ls-btn" onclick="playL(2)">③ Seizure onset</div>
+  <div class="ls-btn" onclick="playL(3)">④ Generalised</div>
+</div>
+<div class="cfc-exp" id="cfcExp"><strong>① Normal PAC:</strong> Healthy resting-state activity. The slow theta rhythm (~6 Hz) gently modulates gamma amplitude (~50 Hz) — gamma bursts are slightly larger at the peak of each theta cycle. The comodulogram shows a faint warm spot at the theta–gamma intersection. The combined EEG signal is clean and rhythmic (green = healthy).</div>
+
+<!-- SIMULATION STACK -->
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:16px;margin-bottom:12px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+    <span style="font-family:var(--mono);font-size:.73rem;font-weight:600;color:var(--txb);">Oscillations — theta (blue) & gamma+HFO (green)</span>
+    <div class="legend"><div class="li"><div class="ld" style="background:#3d8bfd"></div>θ</div><div class="li"><div class="ld" style="background:#1ec06d"></div>γ+HFO</div><div class="li"><div class="ld" style="background:rgba(61,139,253,.3);border:1px dashed rgba(61,139,253,.5)"></div>PAC envelope</div></div>
+  </div>
+  <canvas class="wc" id="cW"></canvas>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 3px;">
+    <span style="font-family:var(--mono);font-size:.73rem;font-weight:600;color:var(--txb);">Comodulogram</span>
+    <div class="legend"><div class="li"><div class="ld" style="background:#0a0c16;border:1px solid #333"></div>None</div><div class="li"><div class="ld" style="background:#1a5090"></div>Normal</div><div class="li"><div class="ld" style="background:#d4a020"></div>Elevated</div><div class="li"><div class="ld" style="background:#e04040"></div>Pathological</div></div>
+  </div>
+  <canvas class="comod" id="cCom"></canvas>
+  <div id="comodExp" style="font-size:.82rem;color:var(--txd);margin:6px 0 4px;line-height:1.6;font-family:var(--mono);">
+    Reading the comodulogram: the x-axis is the phase frequency (which slow rhythm's timing you're measuring), the y-axis is the amplitude frequency (which fast rhythm's strength you're measuring). A bright spot means that slow rhythm's phase is controlling that fast rhythm's amplitude. Healthy brains show a mild spot around θ-phase × γ-amplitude. In seizure states, the spot intensifies and extends upward into the HFO range (>80 Hz).
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 0 3px;">
+    <span style="font-family:var(--mono);font-size:.73rem;font-weight:600;color:var(--txb);">Combined EEG</span>
+    <div class="legend"><div class="li"><div class="ld" style="background:#1ec06d"></div>Healthy</div><div class="li"><div class="ld" style="background:#e8a317"></div>Pre-ictal</div><div class="li"><div class="ld" style="background:#e84040"></div>Ictal</div></div>
+  </div>
+  <canvas class="wc tall" id="cE"></canvas>
+  <div class="hlbl"><span id="hT">Normal resting state</span><span id="hF">Healthy PAC</span></div>
+  <div class="hbar"><div class="hbar-f" id="hFl" style="width:8%;background:var(--ok);"></div></div>
+</div>
+
+<details style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:12px;">
+  <summary style="padding:12px 16px;cursor:pointer;font-weight:600;font-size:.86rem;color:var(--txb);">Manual sliders — experiment freely</summary>
+  <div style="padding:6px 16px 16px;">
+    <div class="sr"><label>PAC strength</label><input type="range" min="0" max="1" step=".01" value=".15" id="sPAC"><span class="v" id="vPAC">0.15</span></div>
+    <div class="sr"><label>HFO power</label><input type="range" min="0" max="1" step=".01" value="0" id="sHFO"><span class="v" id="vHFO">0.00</span></div>
+    <div class="sr"><label>Synchronisation</label><input type="range" min="0" max="1" step=".01" value=".05" id="sSync"><span class="v" id="vSync">0.05</span></div>
+    <div class="sr"><label>E/I balance shift</label><input type="range" min="0" max="1" step=".01" value="0" id="sEI"><span class="v" id="vEI">0.00</span></div>
+  </div>
+</details>
+</div>
+
+<!-- ══════════ S3 ══════════ -->
+<div class="sw" id="s3">
+<h2 class="st">Networks, Time Delays & Seizure Propagation</h2>
+<p class="sd">See how network topology and inter-node delays control whether a seizure stays focal or generalises.</p>
+
+<!-- GUIDE BOX — PROMINENT, ABOVE EVERYTHING -->
+<div class="guide-box">
+  <h3>↓ Guided experiment</h3>
+  <div class="guide-step"><div class="guide-num">1</div><div>Select the <strong>Path</strong> topology below. Set <strong>ρ = 10</strong> and <strong>k = 1</strong>.</div></div>
+  <div class="guide-step"><div class="guide-num">2</div><div><strong>Click node 0</strong> (far left) to trigger a seizure. Watch the slow wavefront — it takes many seconds to reach the far end. The timeline bar fills as nodes are recruited.</div></div>
+  <div class="guide-step"><div class="guide-num">3</div><div>Click <strong>Reset</strong>, then lower <strong>ρ to 3</strong>. Click node 0 again — the seizure spreads much faster because inter-node delay is shorter.</div></div>
+  <div class="guide-step"><div class="guide-num">4</div><div>Switch to the <strong>Complete</strong> graph with any ρ value. Click any node — generalisation is near-instant because every node is directly connected (all edges have the same delay).</div></div>
+  <div class="guide-step"><div class="guide-num">5</div><div>Try the <strong>Cycle</strong> graph — same degree everywhere but only 2 neighbours per node. Compare spread speed to the Complete graph. This demonstrates the mean-degree effect from the paper <span class="ref">[2]</span>.</div></div>
+</div>
+
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:12px;">
+  <div class="nbtn-row">
+    <button class="nbtn on" onclick="setTopo('path',this)">Path</button>
+    <button class="nbtn" onclick="setTopo('complete',this)">Complete</button>
+    <button class="nbtn" onclick="setTopo('cycle',this)">Cycle</button>
+    <button class="nbtn" onclick="setTopo('lattice',this)">Lattice</button>
+    <button class="nbtn" onclick="resetN()" style="margin-left:auto;border-color:var(--dn);color:var(--dn);">Reset</button>
+  </div>
+  <div class="tl-bar" id="nTL">
+    <div class="tl-seg current">Interictal</div><div class="tl-seg">Pre-ictal</div><div class="tl-seg">Onset</div><div class="tl-seg">Spreading</div><div class="tl-seg">Generalised</div>
+  </div>
+  <canvas class="nc" id="cN"></canvas>
+  <div class="sr"><label>Inter-node delay ρ</label><input type="range" min="1" max="40" step="1" value="10" id="sR" oninput="uNV()"><span class="v" id="vR">10</span></div>
+  <div class="sr"><label>Coupling strength k</label><input type="range" min=".1" max="10" step=".1" value="1" id="sKn" oninput="uNV()"><span class="v" id="vKn">1.0</span></div>
+  <div class="hlbl"><span id="nT">Click a node to trigger a seizure</span><span id="nI">0/16</span></div>
+  <div class="hbar"><div class="hbar-f" id="nFl" style="width:0%;background:var(--ok);"></div></div>
+</div>
+
+<div style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;border-left:3px solid var(--ac);">
+  <h3 style="font-family:var(--serif);color:var(--txb);margin-bottom:10px;font-size:1rem;">Mapping to the Wilson–Cowan DDEs</h3>
+  <div class="eq">(1/Tₑ) dEₙ/dt = −Eₙ(t) + S( cₑₑEₙ(t−τ₁) + cᵢₑIₙ(t−τ₂) + Pₙ + kₙ Σⱼ Wₙⱼ Eⱼ(t−ρₙⱼ) )</div>
+  <p style="font-size:.87rem;margin-top:10px;"><strong>ρₙⱼ</strong> = inter-node delay → your ρ slider. Controls propagation speed between brain regions.</p>
+  <p style="font-size:.87rem;"><strong>kₙ</strong> = coupling strength → your k slider. Stronger coupling means neighbours are recruited more easily.</p>
+  <p style="font-size:.87rem;"><strong>Pₙ</strong> = excitatory drive → elevated at the node you click (modelling the epileptogenic zone).</p>
+  <p style="font-size:.87rem;"><strong>W</strong> = adjacency matrix → determined by your topology choice.</p>
+  <p style="font-size:.87rem;margin-top:12px;"><strong>Your DDE extension:</strong> Replace uniform ρ with distance-dependent ρₙⱼ = dₙⱼ/v (graph distance ÷ conduction velocity). This creates a realistic propagation gradient — nearby nodes seize first, distant ones later. On the path graph, this produces a wavefront consistent with clinical observations of ~1–10 mm/s ictal propagation <span class="ref">[2,6]</span>.</p>
+</div>
+</div>
+
+<!-- ══════════ S4: REFERENCES ══════════ -->
+<div class="sw" id="s4">
+<h2 class="st">References</h2>
+<div class="refs"><ol>
+  <li>Wilson, H.R. & Cowan, J.D. (1972). Excitatory and inhibitory interactions in localized populations of model neurons. <em>Biophys. J.</em>, 12(1), 1–24.</li>
+  <li>Conti, F. & Van Gorder, R.A. (2019). The role of network structure and time delay in a metapopulation Wilson–Cowan model. <em>J. Theor. Biol.</em>, 477, 1–13.</li>
+  <li>Coombes, S. & Laing, C. (2009). Delays in activity-based neural networks. <em>Phil. Trans. R. Soc. A</em>, 367, 1117–1129.</li>
+  <li>Meijer, H.G. et al. (2015). Modeling focal epileptic activity in the Wilson–Cowan model with depolarization block. <em>J. Math. Neurosci.</em>, 5(1), 7.</li>
+  <li>Jirsa, V.K. et al. (2014). On the nature of seizure dynamics. <em>Brain</em>, 137(8), 2210–2230.</li>
+  <li>Proix, T. et al. (2018). Predicting the spatiotemporal diversity of seizure propagation and termination. <em>Nat. Commun.</em>, 9, 1088.</li>
+  <li>Tort, A.B. et al. (2009). Dynamic cross-frequency couplings of local field potential oscillations. <em>PNAS</em>, 105(51), 20517–20522.</li>
+  <li>Canolty, R.T. & Knight, R.T. (2010). The functional role of cross-frequency coupling. <em>Trends Cogn. Sci.</em>, 14(11), 506–515.</li>
+  <li>Shusterman, V. & Troy, W.C. (2008). From baseline to epileptiform activity. <em>Phys. Rev. E</em>, 77(6), 061911.</li>
+  <li>Seeley, W.W. et al. (2009). Neurodegenerative diseases target large-scale human brain networks. <em>Neuron</em>, 62(1), 42–52.</li>
+  <li>Engel, J. Jr. (2001). ILAE diagnostic scheme for epileptic seizures and epilepsy. <em>Epilepsia</em>, 42(6), 796–803.</li>
+  <li>Jiruska, P. et al. (2017). Mechanisms and roles of high-frequency oscillations in seizures. <em>Epilepsia</em>, 58(8), 1330–1339.</li>
+</ol></div>
+</div>
+
+<footer style="text-align:center;padding:32px;color:var(--txd);font-size:.74rem;font-family:var(--mono);">Built for MSc Computational Neuroscience</footer>
+
+<script>
+// ═══════ TOOLTIPS ═══════
+const tipBox=document.getElementById('tipBox');
+document.addEventListener('mouseover',e=>{const k=e.target.closest('.kt');if(!k||!k.dataset.tip)return;tipBox.textContent=k.dataset.tip;tipBox.style.display='block';const r=k.getBoundingClientRect(),tb=tipBox.getBoundingClientRect();let top=r.top-tb.height-10,left=r.left+r.width/2-tb.width/2;if(top<8)top=r.bottom+10;if(left<8)left=8;if(left+tb.width>innerWidth-8)left=innerWidth-tb.width-8;tipBox.style.top=top+'px';tipBox.style.left=left+'px';});
+document.addEventListener('mouseout',e=>{if(e.target.closest('.kt'))tipBox.style.display='none';});
+
+// ═══════ ACCORDION ═══════
+function T(t,tip){return `<span class="kt" data-tip="${tip.replace(/"/g,'&quot;')}">${t}</span>`;}
+
+const L=[
+{b:"Level 1",t:"What is a seizure?",c:`<p>A ${T('seizure','A sudden, uncontrolled burst of electrical activity in the brain that temporarily disrupts normal function.')} is a runaway synchronisation event in the brain. A population of ${T('neurons','Nerve cells — the building blocks of the brain, communicating via electrical and chemical signals.')} that normally fires in loosely coordinated patterns suddenly locks into tight, high-amplitude, synchronised oscillations. On an ${T('EEG','Electroencephalogram — records brain electrical activity via electrodes.')} this appears as a dramatic shift from normal background activity to large, rhythmic discharges.</p>
+<p>Seizures are classified as ${T('focal','Starting in one specific brain region.')} (originating in one region) or ${T('generalised','Involving both brain hemispheres simultaneously.')} (engaging both hemispheres from the start). A focal seizure can secondarily generalise — the pathological synchronisation spreads along anatomical connections from the ${T('epileptogenic zone (EZ)','The specific region of brain tissue where seizures originate — could be damaged by injury, a developmental abnormality, or an area with genetic differences in its ion channels.')} to the wider cortex. ${T('Epilepsy','A neurological condition defined by recurrent, unprovoked seizures. Affects ~1% of the world population.')} — the condition of having recurrent seizures — affects roughly 1 in 100 people <span class="ref">[11]</span>.</p>`},
+
+{b:"Level 2",t:"What does a seizure feel like?",c:`<p>Seizure ${T('semiology','The clinical manifestations of a seizure — what it looks like and what the patient experiences.')} (the clinical manifestations) maps directly to which cortical regions are involved:</p>
+<p><strong>Temporal lobe seizures</strong> often begin with an ${T('aura','A subjective warning sensation at seizure onset — actually a focal seizure the patient is aware of.')} — a rising epigastric sensation, déjà vu, or olfactory hallucinations — reflecting activation of the ${T('amygdala','A brain structure involved in emotional processing, particularly fear and anxiety.')} and ${T('hippocampus','A brain structure critical for memory formation.')}. If awareness is impaired, the patient may exhibit ${T('automatisms','Repetitive, semi-purposeful movements occurring unconsciously during a seizure — lip-smacking, hand-fumbling, chewing.')} (repetitive unconscious movements like lip-smacking), reflecting spread to temporal neocortex and insular cortex.</p>
+<p><strong>Generalised tonic-clonic seizures:</strong> The ${T('tonic phase','Sustained muscle contraction — the body stiffens.')} (body stiffens) reflects sustained excitatory output to motor cortex and brainstem. The ${T('clonic phase','Rhythmic jerking as muscles alternately contract and relax.')} (rhythmic jerking) reflects alternating excitation and inhibition — the E/I system is attempting to regain control. Clonic jerk frequency typically decreases as the seizure progresses, reflecting increasing inhibitory drive. Duration: 1–3 minutes.</p>
+<p><strong>${T('Postictal','The recovery period after a seizure — suppressed brain activity, confusion, exhaustion.')} phase:</strong> After seizure termination, the brain enters a recovery period — suppressed cortical activity (diffuse EEG slowing), confusion, exhaustion, sometimes temporary word-finding difficulty. This reflects metabolic exhaustion, inhibitory rebound (enhanced GABAergic tone), and activity-dependent synaptic depression <span class="ref">[5]</span>.</p>`},
+
+{b:"Level 3",t:"Excitatory-inhibitory balance",c:`<p>The cortex maintains a dynamic ${T('E/I balance','The ratio of excitatory to inhibitory signalling — actively regulated, not a fixed ratio.')} through feedback between ${T('glutamatergic','Relating to glutamate, the brain\'s primary excitatory neurotransmitter.')} pyramidal cells (excitatory) and ${T('GABAergic','Relating to GABA (gamma-aminobutyric acid), the brain\'s primary inhibitory neurotransmitter.')} interneurons (inhibitory). This balance is actively regulated through synaptic plasticity, homeostatic mechanisms, and neuromodulation.</p>
+<p>Seizures arise when this balance breaks down via three primary mechanisms:</p>
+<p><strong>Hyperexcitation:</strong> Excess glutamate through upregulated NMDA/AMPA receptors, impaired glutamate reuptake by astrocytes, or gain-of-function mutations in sodium ${T('ion channels','Protein tunnels in the cell membrane that allow charged particles to flow in and out — the basis of neuronal electrical signalling.')}.</p>
+<p><strong>Inhibitory failure:</strong> Loss of GABAergic interneurons — characteristic of ${T('mesial temporal sclerosis','Scarring and cell loss in the hippocampus, the most common pathological finding in temporal lobe epilepsy.')} — reduced GABA synthesis, or downregulated GABA receptors.</p>
+<p><strong>Depolarising GABA:</strong> Normally GABA opens chloride channels that hyperpolarise cells (inhibition). If the chloride gradient reverses (altered KCC2/NKCC1 cotransporter expression), GABA<sub>A</sub> activation becomes excitatory — the inhibitory brake becomes a second accelerator. Observed in neonatal seizures and Dravet syndrome. In Wilson–Cowan terms, this corresponds to flipping the sign on the inhibitory coupling coefficient cᵢₑ <span class="ref">[4]</span>.</p>`},
+
+{b:"Level 4",t:"Brain oscillations and cross-frequency coupling",c:`<p>Neural populations produce oscillations across canonical frequency bands: ${T('delta','0.5–4 Hz — deep sleep.')} (0.5–4 Hz), ${T('theta','4–8 Hz — memory, navigation.')} (4–8 Hz), ${T('alpha','8–13 Hz — relaxed wakefulness.')} (8–13 Hz), ${T('beta','13–30 Hz — active cognition.')} (13–30 Hz), and ${T('gamma','30–90 Hz — attention, perception, consciousness.')} (30–90 Hz).</p>
+<p>${T('Cross-frequency coupling (CFC)','Statistical interaction between oscillations at different frequencies — a key mechanism for coordinating brain activity across scales.')} describes the interaction between oscillations at different frequencies. The most physiologically relevant form is ${T('phase-amplitude coupling (PAC)','The phase (timing) of a slow oscillation modulates the amplitude (size) of a faster oscillation.')} — the instantaneous phase of a slow oscillation modulates the amplitude of a faster one. The canonical example is hippocampal theta-phase organising gamma-amplitude during working memory <span class="ref">[7,8]</span>. This is quantified using a ${T('comodulogram','A 2D heatmap: phase frequency on one axis, amplitude frequency on the other, coupling strength as colour intensity.')} — a 2D heatmap with phase frequency on one axis, amplitude frequency on the other, and coupling strength as colour.</p>
+<p>In epileptogenic tissue, three changes occur: (1) PAC strength between slow-oscillation phase and ${T('HFO','High-frequency oscillations — abnormally fast activity above 80 Hz, produced by small clusters of neurons firing in tight synchrony.')} amplitude (80–500 Hz) increases dramatically. (2) ${T('Fast ripples','250–500 Hz oscillations from tiny clusters of ~50–200 neurons firing in lockstep — the strongest biomarker of the epileptogenic zone.')} (250–500 Hz) emerge, tightly phase-locked to slower ictal rhythms. (3) The spatial footprint of significant PAC expands during the pre-ictal to ictal transition as surrounding tissue is recruited <span class="ref">[12]</span>.</p>
+<p>CFC does not cause seizures — it is a frequency-domain signature of the underlying E/I imbalance.</p>`},
+
+{b:"Level 5",t:"Seizures as bifurcations",c:`<p>In the dynamical systems framework, the healthy brain state is a ${T('limit cycle','A stable repeating oscillation — the brain never goes silent, so rest means stable ongoing oscillation, not flatline.')} — a stable periodic oscillation representing normal resting-state rhythms. Seizure onset corresponds to a ${T('bifurcation','A qualitative change in a system\'s behaviour when a parameter crosses a critical threshold — like water boiling at 100°C.')} — a qualitative change in the system's attractor structure as control parameters (effectively the E/I balance) cross critical thresholds <span class="ref">[5]</span>.</p>
+<p>Different bifurcation types produce distinct clinical signatures:</p>
+<p><strong>${T('Supercritical Hopf','Oscillations emerge gradually from zero amplitude — like smoothly turning up volume.')}:</strong> Oscillations grow gradually from zero amplitude. Biologically: a smooth, progressive tipping of the E/I balance (increasing excitatory drive). On EEG: low-voltage fast activity (LVFA) with gradually increasing amplitude. This is the most natural bifurcation in the Wilson–Cowan model — increasing Pₙ past a critical value with the sigmoid nonlinearity S(x) = 1/(1+e⁻ᵝˣ) produces exactly this.</p>
+<p><strong>${T('Saddle-node (SNIC)','A stable state suddenly vanishes — the system abruptly jumps to oscillatory behaviour.')}:</strong> The stable equilibrium suddenly disappears. Biologically: sudden inhibitory collapse rather than gradual shift. On EEG: abrupt, large-amplitude spike-and-wave discharges from the start.</p>
+<p>Clinicians use the EEG onset pattern to infer the underlying mechanism — LVFA suggests gradual E/I shift, SWDs suggest sudden inhibitory failure — which guides treatment <span class="ref">[5]</span>.</p>`},
+
+{b:"Level 6",t:"Stages of a seizure and what drives each transition",c:`<p><strong>${T('Interictal','Between seizures — mostly normal activity, occasional sharp discharges from the EZ.')}:</strong> Normal activity. The EZ shows occasional interictal epileptiform discharges (brief sharp transients) but no sustained seizure. In Wilson–Cowan terms: the focus node is on a stable limit cycle near the bifurcation boundary — perturbations produce large transient excursions that decay.</p>
+<p><em>→ Transition to pre-ictal:</em> Slow parameter drift — metabolic shifts, circadian effects, hormonal fluctuations, or missed medication gradually push the E/I balance toward the bifurcation threshold.</p>
+<p><strong>${T('Pre-ictal','Minutes to seconds before a seizure — subtle shifts in activity foreshadow the coming event.')}:</strong> PAC coupling strengthens, HFOs emerge, spatial coherence around the EZ increases. The system approaches the bifurcation point. ${T('Critical slowing down','Near a bifurcation, the system takes longer to recover from perturbations — being explored as a seizure prediction biomarker.')} becomes measurable — the system takes progressively longer to recover from small perturbations.</p>
+<p><em>→ Transition to ictal:</em> The effective E/I balance parameter crosses the critical bifurcation value. Can be gradual (Hopf → LVFA) or sudden (saddle-node → SWDs).</p>
+<p><strong>Ictal onset:</strong> The bifurcation is crossed. The focus enters a self-sustaining high-amplitude oscillatory state <span class="ref">[5]</span>.</p>
+<p><em>→ Transition to propagation:</em> The high-amplitude excitatory signal from the focus reaches neighbouring regions via coupling pathways, arriving after a delay ρ. If coupling is strong enough and the neighbour is sufficiently close to its own bifurcation threshold, it is recruited — its E/I balance tips. This cascading recruitment creates a spatiotemporal wavefront <span class="ref">[6]</span>.</p>
+<p><strong>Propagation → generalisation:</strong> Wavefront velocity ∝ coupling strength / delay. Intracranial EEG measurements show ictal wavefronts of ~1–10 mm/s <span class="ref">[6,9]</span>. Whether generalisation occurs depends on network topology — dense, uniform networks generalise rapidly; sparse, heterogeneous networks may contain the seizure focally <span class="ref">[2]</span>.</p>
+<p><em>→ Termination:</em> Involves metabolic exhaustion (ATP depletion, extracellular potassium accumulation), inhibitory rebound (enhanced GABAergic tone), and activity-dependent synaptic depression. Then the postictal period: suppressed activity, confusion, exhaustion.</p>`},
+
+{b:"Level 7",t:"Network propagation and time delays — the Wilson–Cowan DDE model",c:`<p>The brain is a ${T('network','A collection of distinct regions (nodes) connected by communication pathways (edges).')} of distinct regions connected by ${T('white matter tracts','Bundles of myelinated nerve fibres carrying signals between brain regions.')} — myelinated fibre bundles that carry signals between regions. Signal propagation takes real time: typically 5–30 ms between cortical areas. These ${T('time delays','The time for a signal to travel between brain regions — determined by distance and conduction speed.')} fundamentally shape seizure propagation.</p>
+<p>The Conti & Van Gorder model <span class="ref">[2]</span> captures this with 2N coupled ${T('delay differential equations (DDEs)','Equations where the rate of change depends on the state at earlier times — capturing signal propagation delays.')} on an N-node graph:</p>
+<div class="eq">(1/Tₑ) dEₙ/dt = −Eₙ(t) + S( cₑₑEₙ(t−τ₁) + cᵢₑIₙ(t−τ₂) + Pₙ + kₙ Σⱼ Wₙⱼ Eⱼ(t−ρₙⱼ) )</div>
+<p>The inter-node delay ρₙⱼ sets propagation timescale. The ${T('topology','The pattern of connections — which nodes connect to which.')} W determines which nodes are connected. Key findings from the paper <span class="ref">[2]</span>:</p>
+<p>(1) <strong>Mean degree effect:</strong> High mean degree → robust limit cycles but rapid seizure generalisation once bifurcation is crossed. Low mean degree → vulnerable to local instabilities but may contain spread.</p>
+<p>(2) <strong>Degree homogeneity:</strong> Uniform degree → synchronous dynamics → symmetric forcing once any node seizes. Heterogeneous degree → asynchronous dynamics → seizure may stay focal.</p>
+<p>(3) <strong>Delay effects:</strong> Larger ρ → slower wavefront → more time for intrinsic inhibition to contain spread.</p>
+<p><strong>Your DDE extension:</strong> Replace uniform ρ with distance-dependent ρₙⱼ = dₙⱼ/v (graph distance ÷ conduction velocity, ~1–10 m/s for cortico-cortical fibres). On the path graph this produces a realistic slow-moving wavefront. On the complete graph all nodes are distance-1, so the distinction collapses. This bridges the uniform-delay model and clinical seizure propagation observations <span class="ref">[2,6,9]</span>.</p>`}
+];
+
+function buildAcc(){const c=document.getElementById('accC');const sts=[...c.querySelectorAll('.acc')].map(a=>a.classList.contains('open'));c.innerHTML='';L.forEach((l,i)=>{const d=document.createElement('div');d.className='acc'+((sts.length?sts[i]:i===0)?' open':'');d.innerHTML=`<div class="acch" onclick="togAcc(this.parentElement)"><span class="badge">${l.b}</span><span class="t">${l.t}</span><svg class="chev" viewBox="0 0 20 20" fill="currentColor"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/></svg></div><div class="accb"><div class="accc">${l.c}</div></div>`;c.appendChild(d);});c.querySelectorAll('.acc.open .accb').forEach(b=>b.style.maxHeight=b.scrollHeight+'px');}
+function togAcc(el){const b=el.querySelector('.accb');if(el.classList.contains('open'))b.style.maxHeight='0';else b.style.maxHeight=b.scrollHeight+'px';el.classList.toggle('open');}
+buildAcc();
+
+// ═══════ CFC LESSONS ═══════
+const presets=[{pac:.15,hfo:0,sync:.05,ei:0},{pac:.42,hfo:.22,sync:.20,ei:.28},{pac:.70,hfo:.55,sync:.48,ei:.62},{pac:.95,hfo:.92,sync:.92,ei:.95}];
+const lText=[
+  `<strong>① Normal PAC:</strong> Healthy resting-state activity. Theta (~6 Hz) gently modulates gamma (~50 Hz) — gamma bursts are slightly larger at theta peaks. The comodulogram shows a faint warm spot at θ-phase × γ-amplitude. Combined EEG is clean and rhythmic (green). This is a stable limit cycle in Wilson–Cowan terms.`,
+  `<strong>② Pre-ictal:</strong> The E/I balance at the focus is shifting. PAC is tightening — gamma bursts are more rigidly locked to theta phase. Early HFOs appearing as fast wiggles riding on gamma. The comodulogram hotspot is brightening and extending upward toward HFO frequencies. Combined EEG (amber) has slightly larger amplitude and sharper transients. The system is approaching the bifurcation point — this is where critical slowing down would be measurable.`,
+  `<strong>③ Seizure onset:</strong> The bifurcation threshold has been crossed. Oscillation amplitude jumps dramatically. HFOs are clearly visible — fast oscillations tightly phase-locked to each theta cycle. The comodulogram shows an intense hotspot extending well into HFO range (>80 Hz). Combined EEG (red) shows dramatically increased amplitude. On a real EEG, a neurologist would annotate this as seizure onset — note the EEG annotations below showing the onset pattern.`,
+  `<strong>④ Generalised seizure:</strong> Full hypersynchronisation — all populations locked to the same high-amplitude rhythm. Maximum coupling, maximum amplitude. The comodulogram is dominated by the pathological hotspot. Combined EEG at peak amplitude with spike-and-wave morphology. <em>Try: open manual sliders and pull PAC back down — conceptually, that's what anti-epileptic treatment does.</em>`
+];
+
+function playL(n){const p=presets[n];animS('sPAC',p.pac);animS('sHFO',p.hfo);animS('sSync',p.sync);animS('sEI',p.ei);document.querySelectorAll('.ls-btn').forEach((b,i)=>b.classList.toggle('on',i===n));document.getElementById('cfcExp').innerHTML=lText[n];}
+function animS(id,tgt){const el=document.getElementById(id),s=+el.value,dur=700,t0=performance.now();(function f(now){const p=Math.min(1,(now-t0)/dur),e=p<.5?2*p*p:1-(-2*p+2)**2/2;el.value=s+(tgt-s)*e;el.dispatchEvent(new Event('input'));if(p<1)requestAnimationFrame(f);})(t0);}
+['PAC','HFO','Sync','EI'].forEach(n=>{document.getElementById('s'+n).addEventListener('input',function(){document.getElementById('v'+n).textContent=(+this.value).toFixed(2);uH();});});
+
+function uH(){const pac=+document.getElementById('sPAC').value,hfo=+document.getElementById('sHFO').value,sync=+document.getElementById('sSync').value,ei=+document.getElementById('sEI').value;
+const sev=Math.min(1,pac*.25+hfo*.35+sync*.2+ei*.2);const f=document.getElementById('hFl');f.style.width=(sev*100)+'%';
+if(sev<.15){f.style.background='var(--ok)';document.getElementById('hT').textContent='Normal';document.getElementById('hF').textContent='Healthy PAC';}
+else if(sev<.35){f.style.background='var(--wn)';document.getElementById('hT').textContent='Pre-ictal';document.getElementById('hF').textContent='PAC↑';}
+else if(sev<.6){f.style.background='var(--dn)';document.getElementById('hT').textContent='Ictal';document.getElementById('hF').textContent='HFOs present';}
+else{f.style.background='#ff2222';document.getElementById('hT').textContent='Generalised seizure';document.getElementById('hF').textContent='Hypersynchronous';}}
+
+// ═══════ WAVE RENDERING ═══════
+function sC(c){const d=devicePixelRatio||1,r=c.getBoundingClientRect();c.width=r.width*d;c.height=r.height*d;const x=c.getContext('2d');x.scale(d,d);return{x,w:r.width,h:r.height};}
+let wt=0;
+function gP(){return{pac:+document.getElementById('sPAC').value,hfo:+document.getElementById('sHFO').value,sync:+document.getElementById('sSync').value,ei:+document.getElementById('sEI').value};}
+
+function drawAll(){
+  wt+=.018;const p=gP(),t=wt,tf=6,gf=50;
+  const sev=Math.min(1,p.pac*.25+p.hfo*.35+p.sync*.2+p.ei*.2);
+
+  // ── OSCILLATIONS ──
+  {const{x:c,w,h}=sC(document.getElementById('cW'));c.clearRect(0,0,w,h);
+  const tH=h*.4, gH=h*.4, tY=h*.28, gY=h*.72;
+  // Theta
+  c.beginPath();c.strokeStyle='#3d8bfd';c.lineWidth=2;
+  for(let i=0;i<w;i++){const ph=(i/w)*6*Math.PI+t*tf*.35;const y=tY+Math.sin(ph)*tH*.5;i?c.lineTo(i,y):c.moveTo(i,y);}c.stroke();
+  // Gamma + HFO — scale amplitude to fit within gH bounds
+  const maxAmpFactor=(1+p.pac*2)*(1+p.ei*.5)*(1+p.sync*.3)+p.hfo*.7;
+  const gScale=Math.min(1, .9/maxAmpFactor); // auto-scale to prevent clipping
+  c.beginPath();c.strokeStyle='#1ec06d';c.lineWidth=1.5;
+  for(let i=0;i<w;i++){const tp=(i/w)*6*Math.PI+t*tf*.35,tv=Math.sin(tp),mod=1+p.pac*2*Math.max(0,tv);
+  const gp=(i/w)*6*Math.PI*(gf/tf)+t*gf*.35;let gy=Math.sin(gp)*mod;
+  if(p.hfo>.03){gy+=Math.sin((i/w)*6*Math.PI*(180/tf)+t*180*.35)*p.hfo*.7*(1+.8*Math.max(0,tv));}
+  gy*=(1+p.ei*.5)*(1+p.sync*.3)*gScale;
+  c.lineTo(i,gY+gy*gH*.45);}c.stroke();
+  // PAC envelope
+  c.beginPath();c.strokeStyle='rgba(61,139,253,.16)';c.lineWidth=1;c.setLineDash([3,3]);
+  for(let i=0;i<w;i++){const tp=(i/w)*6*Math.PI+t*tf*.35;const env=((1+p.pac*2*Math.max(0,Math.sin(tp)))*(1+p.ei*.5)*(1+p.sync*.3)+p.hfo*.7)*gScale;c.lineTo(i,gY-env*gH*.45);}
+  c.stroke();c.setLineDash([]);
+  // Divider
+  c.strokeStyle='rgba(35,40,55,.5)';c.lineWidth=1;c.beginPath();c.moveTo(0,h*.5);c.lineTo(w,h*.5);c.stroke();}
+
+  // ── COMBINED EEG with annotations ──
+  {const{x:c,w,h}=sC(document.getElementById('cE'));c.clearRect(0,0,w,h);const m=h/2;
+  if(sev>.35){const pulse=.5+.5*Math.sin(t*4);c.fillStyle=`rgba(232,64,64,${(sev-.35)*.1*pulse})`;c.fillRect(0,0,w,h);}
+  // Compute max for scaling
+  let maxV=0;const vals=[];
+  for(let i=0;i<w;i++){const tp=(i/w)*6*Math.PI+t*tf*.35,tv=Math.sin(tp),mod=1+p.pac*2*Math.max(0,tv);
+  const gp=(i/w)*6*Math.PI*(gf/tf)+t*gf*.35;let v=tv*.25*(1+p.ei*.5);v+=Math.sin(gp)*.15*mod;
+  if(p.hfo>.03){v+=Math.sin((i/w)*6*Math.PI*(180/tf)+t*180*.35)*.12*p.hfo*(1+Math.max(0,tv));}
+  v*=(1+p.sync*1.2+p.ei*.6);vals.push(v);maxV=Math.max(maxV,Math.abs(v));}
+  const scale=maxV>0?Math.min(1,.85/maxV):1;
+  c.beginPath();for(let i=0;i<w;i++){const y=m-vals[i]*scale*m;i?c.lineTo(i,y):c.moveTo(i,y);}
+  c.strokeStyle=sev<.2?'#1ec06d':sev<.4?'#e8a317':'#e84040';c.lineWidth=1.8;c.stroke();
+
+  // EEG Annotations
+  c.font='bold 10px IBM Plex Mono';c.textAlign='left';
+  if(sev<.15){c.fillStyle='rgba(30,192,109,.5)';c.fillText('Normal background rhythm',8,16);}
+  else if(sev<.35){c.fillStyle='rgba(232,163,23,.6)';c.fillText('↑ Amplitude increasing — pre-ictal',8,16);c.fillText('Interictal spikes may appear here',8,h-8);}
+  else if(sev<.6){c.fillStyle='rgba(232,64,64,.6)';c.fillText('⚡ SEIZURE ONSET — LVFA / spike-and-wave',8,16);c.fillText('HFOs visible riding on slow oscillation',8,h-8);}
+  else{c.fillStyle='rgba(255,34,34,.7)';c.fillText('⚡ GENERALISED — hypersynchronous discharge',8,16);c.fillText('Spike-and-wave morphology',8,h-8);}
+  }
+
+  // ── COMODULOGRAM ──
+  {const cv=document.getElementById('cCom'),{x:c,w,h}=sC(cv);c.clearRect(0,0,w,h);
+  const ml=50,mr=12,mt=12,mb=40,pw=w-ml-mr,ph=h-mt-mb,pMn=2,pMx=14,aMn=20,aMx=300,res=3;
+  for(let px=0;px<pw;px+=res){for(let py=0;py<ph;py+=res){
+  const pf=pMn+(px/pw)*(pMx-pMn),af=aMx-(py/ph)*(aMx-aMn);
+  const tP=Math.exp(-.5*((pf-6)/2)**2),gP2=Math.exp(-.5*((af-50)/20)**2);
+  let cp=tP*gP2*.3+tP*gP2*p.pac*.6;
+  if(p.hfo>.03){cp+=tP*Math.exp(-.5*((af-180)/60)**2)*p.hfo*.7;cp+=tP*Math.exp(-.5*((af-250)/40)**2)*p.hfo*.4;}
+  cp*=(1+p.sync*.5)*(1+p.ei*.6);cp=Math.min(1,cp);
+  let r,g,b;if(cp<.15){r=10;g=12;b=20+cp*200;}else if(cp<.4){const t2=(cp-.15)/.25;r=10+t2*230|0;g=12+t2*180|0;b=50-t2*20|0;}else{const t2=(cp-.4)/.6;r=240;g=190-t2*160|0;b=30-t2*30|0;}
+  c.fillStyle=`rgb(${r},${g},${b})`;c.fillRect(ml+px,mt+py,res,res);}}
+  c.strokeStyle='rgba(200,205,216,.2)';c.lineWidth=1;c.strokeRect(ml,mt,pw,ph);
+  c.fillStyle='rgba(200,205,216,.45)';c.font='9px IBM Plex Mono';c.textAlign='center';
+  for(let f=2;f<=14;f+=2)c.fillText(f+'Hz',ml+(f-pMn)/(pMx-pMn)*pw,h-mb+13);
+  c.fillText('Phase Frequency (slow rhythm)',ml+pw/2,h-4);
+  c.textAlign='right';for(let f=50;f<=300;f+=50)c.fillText(f+'',ml-5,mt+(aMx-f)/(aMx-aMn)*ph+3);
+  c.save();c.translate(10,mt+ph/2);c.rotate(-Math.PI/2);c.textAlign='center';c.fillText('Amplitude Frequency (fast rhythm)',0,0);c.restore();
+  // Frequency band labels on y-axis
+  c.textAlign='left';c.fillStyle='rgba(200,205,216,.2)';c.font='8px IBM Plex Mono';
+  const bandY=(f)=>mt+(aMx-f)/(aMx-aMn)*ph;
+  c.fillText('γ gamma',ml+pw+4,bandY(50)+3);
+  c.fillText('HFO',ml+pw+4,bandY(120)+3);
+  c.fillText('Fast ripples',ml+pw+4,bandY(280)+3);
+  }
+
+  requestAnimationFrame(drawAll);
+}
+drawAll();uH();
+
+// ═══════ NETWORK ═══════
+const NN=16;let nN=[],nE=[],nDist,curT='path',sS=-1,sT=0,sA=false;
+function genT(t){const n=[],e=[];
+if(t==='path'){for(let i=0;i<NN;i++)n.push({x:50+i*(600/(NN-1)),y:160,s:0,o:Math.random()*6.28});for(let i=0;i<NN-1;i++)e.push([i,i+1]);}
+else if(t==='cycle'){for(let i=0;i<NN;i++){const a=i/NN*6.28-1.57;n.push({x:350+Math.cos(a)*125,y:160+Math.sin(a)*125,s:0,o:Math.random()*6.28});}for(let i=0;i<NN;i++)e.push([i,(i+1)%NN]);}
+else if(t==='complete'){for(let i=0;i<NN;i++){const a=i/NN*6.28-1.57;n.push({x:350+Math.cos(a)*125,y:160+Math.sin(a)*125,s:0,o:Math.random()*6.28});}for(let i=0;i<NN;i++)for(let j=i+1;j<NN;j++)e.push([i,j]);}
+else{for(let r=0;r<4;r++)for(let c=0;c<4;c++)n.push({x:210+c*90,y:40+r*90,s:0,o:Math.random()*6.28});for(let r=0;r<4;r++)for(let c=0;c<4;c++){const i=r*4+c;if(c<3)e.push([i,i+1]);if(r<3)e.push([i,i+4]);}}
+return{n,e};}
+function cD(n,e){const N=n.length,d=Array.from({length:N},()=>Array(N).fill(1e9)),adj=Array.from({length:N},()=>[]);e.forEach(([a,b])=>{adj[a].push(b);adj[b].push(a);});for(let s=0;s<N;s++){d[s][s]=0;const q=[s];let qi=0;while(qi<q.length){const u=q[qi++];for(const v of adj[u])if(d[s][v]>1e8){d[s][v]=d[s][u]+1;q.push(v);}}}return d;}
+function setTopo(t,btn){curT=t;document.querySelectorAll('.nbtn:not(:last-child)').forEach(b=>b.classList.remove('on'));if(btn)btn.classList.add('on');const{n,e}=genT(t);nN=n;nE=e;nDist=cD(n,e);resetN();}
+function resetN(){sA=false;sS=-1;sT=0;nN.forEach(n=>n.s=0);uTL(-1);uNH();}
+function uNV(){document.getElementById('vR').textContent=document.getElementById('sR').value;document.getElementById('vKn').textContent=(+document.getElementById('sKn').value).toFixed(1);}
+
+document.getElementById('cN').addEventListener('click',function(ev){const r=this.getBoundingClientRect(),mx=ev.clientX-r.left,my=ev.clientY-r.top;let ci=-1,cd=1e9;nN.forEach((n,i)=>{const d=Math.hypot(n.x-mx,n.y-my);if(d<cd){cd=d;ci=i;}});if(cd<25&&ci>=0){sS=ci;sA=true;sT=0;nN.forEach(n=>n.s=0);nN[ci].s=1;}});
+
+function uTL(stage){document.querySelectorAll('#nTL .tl-seg').forEach((el,i)=>{el.className='tl-seg';if(i<stage)el.classList.add('reached');else if(i===stage)el.classList.add('current');});}
+function uNH(){const sz=nN.filter(n=>n.s>.5).length,pct=sz/NN;document.getElementById('nFl').style.width=(pct*100)+'%';document.getElementById('nFl').style.background=pct<.15?'var(--ok)':pct<.4?'var(--wn)':pct<.7?'var(--dn)':'#ff2222';document.getElementById('nI').textContent=sz+'/'+NN;if(!sA){document.getElementById('nT').textContent='Click a node to trigger a seizure';uTL(0);}else if(pct<.1){document.getElementById('nT').textContent='Pre-ictal';uTL(1);}else if(pct<.2){document.getElementById('nT').textContent='Onset';uTL(2);}else if(pct<.8){document.getElementById('nT').textContent='Spreading — '+sz+' nodes';uTL(3);}else{document.getElementById('nT').textContent='Generalised';uTL(4);}}
+
+function drawN(){const cv=document.getElementById('cN'),dpr=devicePixelRatio||1,rect=cv.getBoundingClientRect();cv.width=rect.width*dpr;cv.height=rect.height*dpr;const c=cv.getContext('2d');c.scale(dpr,dpr);const w=rect.width,h=rect.height;c.clearRect(0,0,w,h);
+const rho=+document.getElementById('sR').value,k=+document.getElementById('sKn').value;
+if(sA&&sS>=0){sT+=.025;nN.forEach((n,i)=>{if(i===sS){n.s=1;return;}const d=nDist[sS]?.[i];if(d<1e8){const arr=(d*rho*.12)/(k*.5);if(sT>arr){n.s=Math.max(n.s,Math.min(1,(sT-arr)*.6*k*.15));}}});}
+nE.forEach(([a,b])=>{const na=nN[a],nb=nN[b],avg=(na.s+nb.s)/2;c.beginPath();c.moveTo(na.x,na.y);c.lineTo(nb.x,nb.y);c.strokeStyle=avg>.1?`rgba(232,64,64,${.1+avg*.5})`:'rgba(35,40,55,.6)';c.lineWidth=avg>.1?1+avg*2:1;c.stroke();});
+nN.forEach((n,i)=>{n.o+=.05;const br=9,osc=n.s<.3?Math.sin(n.o)*1.2:Math.sin(n.o*3)*3*n.s,r=br+osc;
+if(n.s>.15){const gr=r+7+n.s*9;const gd=c.createRadialGradient(n.x,n.y,r,n.x,n.y,gr);gd.addColorStop(0,`rgba(232,64,64,${n.s*.3})`);gd.addColorStop(1,'rgba(232,64,64,0)');c.beginPath();c.arc(n.x,n.y,gr,0,6.28);c.fillStyle=gd;c.fill();}
+c.beginPath();c.arc(n.x,n.y,r,0,6.28);
+if(n.s>.5)c.fillStyle=`rgb(232,${68+(1-n.s)*70|0},${68+(1-n.s)*70|0})`;else if(n.s>.1)c.fillStyle=`rgb(${61+n.s*340|0},${139-n.s*140|0},${253-n.s*370|0})`;else c.fillStyle='#3d8bfd';c.fill();
+if(i===sS){c.strokeStyle='#fff';c.lineWidth=2.5;}else{c.strokeStyle='rgba(255,255,255,.06)';c.lineWidth=1;}c.stroke();
+c.fillStyle='rgba(200,205,216,.35)';c.font='8px IBM Plex Mono';c.textAlign='center';c.fillText(i,n.x,n.y+r+11);c.textAlign='left';});
+uNH();requestAnimationFrame(drawN);}
+setTopo('path',document.querySelector('.nbtn'));drawN();
+
+// NAV
+const secs=document.querySelectorAll('.sw'),nls=document.querySelectorAll('nav.tabs a');
+window.addEventListener('scroll',()=>{let c='';secs.forEach(s=>{if(scrollY>=s.offsetTop-100)c=s.id;});nls.forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+c));});
+</script>
+</body>
+</html>
