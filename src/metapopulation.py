@@ -11,8 +11,8 @@ Metapopulation class
 import yaml
 import numpy as np
 import matplotlib.pyplot as plt
-from network import Network
-from model import Model
+from src.network import Network
+from src.model import Model
 
 class Metapopulation():
     

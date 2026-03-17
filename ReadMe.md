@@ -1,11 +1,11 @@
 # The role of network structure and time delay in a metapopulation Wilson–Cowan model, Conti and Van Gorder, 2019
 
 ## Directory structure
-- config: configuration files for the Metapopulation class
 - data: a place for data to live
+- experiments: Experiments using the Metapopulation class. Python script and accompanying .yaml config file
 - ref: any references, notes, etc
-- scrap: a messy playground
-- src: where all the good code goes
+- scrap: a messy playground. Anything which doesn't fit structure belongs here. Commit it if it's useful
+- src: where all the good code goes. the Metapopulation package
 
 ## Files
 - ReadMe.md - add anything a contributor needs to know here
@@ -26,6 +26,10 @@
 - Install packages from requirements.txt
 
 ```pip install -r requirements.txt```
+
+- Install the src package with pip 
+
+```pip install -e .```
 
 - Run file example.py for example
 
