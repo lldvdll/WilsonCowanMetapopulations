@@ -4,3 +4,4 @@ matplotlib
 pyyaml
 scipy
 jitcdde
+sympy
