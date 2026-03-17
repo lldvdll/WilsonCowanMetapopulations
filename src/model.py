@@ -62,6 +62,8 @@ class Model:
         self.params = {**DEFAULT_PARAMS}
         if params is not None:
             self.params.update(params)
+        print("Model parameters:")
+        print(self.params)
         self.time_array = None # Time grid
         self.trajectories = None  # Reulsting simulated trajectories 2xNxT
         self.process_mode()
