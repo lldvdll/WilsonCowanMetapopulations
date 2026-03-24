@@ -12,6 +12,7 @@ import yaml
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from src.network import Network
 from src.model import Model
 
@@ -95,3 +96,48 @@ class Metapopulation():
             plt.plot(0, 0, color=colour, label=c)      
         plt.legend()
         plt.show()      
+        
+        
+    def plot_nullclines(self):
+        """
+        Plots the E and I nullclines for ALL nodes at t=0.
+        """
+        
+        def sigmoid(x):
+            return 1.0 / (1.0 + np.exp(-p['beta'] * x))
+        
+        # Get parameters and values
+        p = self.model.params
+        N = self.network.N
+        W = self.network.A
+        E_init = self.model.initial_conditions[:N]
+        I_init = self.model.initial_conditions[N:]
+        coupling_terms = p['k'] * (W @ E_init)
+        
+        # Set up the plot
+        E_val = np.linspace(0.0, 1.1, 100)
+        I_val = np.linspace(0.0, 1.1, 100)
+        E_grid, I_grid = np.meshgrid(E_val, I_val)
+        plt.figure(figsize=(8, 6))
+        
+        for node in range(N):
+            
+            # Calculate the derivative
+            dE = -E_grid + sigmoid(p['c_ee']*E_grid + p['c_ie']*I_grid + p['P'] + p['k'] * coupling_terms[node])
+            dI = -I_grid + sigmoid(p['c_ei']*E_grid + p['c_ii']*I_grid + p['Q'])
+            
+            # Plot the 0 contours, i.e. where dE=0 and dI=0
+            plt.contour(E_grid, I_grid, dE, levels=[0], colors='blue', linewidths=2, alpha=0.7)  # I nullcline
+            plt.contour(E_grid, I_grid, dI, levels=[0], colors='black', linewidths=2, alpha=0.7)  # E nullcline
+            plt.plot(E_init[node], I_init[node], 'ro', markersize=4, alpha=0.7)  # Initial conditions
+        
+        custom_lines = [Line2D([0], [0], color='blue', lw=2, alpha=0.7),
+                        Line2D([0], [0], color='black', lw=2, alpha=0.7),
+                        Line2D([0], [0], marker='o', color='w', markerfacecolor='red', markersize=6)]
+        plt.xlabel("Excitatory")
+        plt.ylabel("Inhibitory")
+        plt.legend(custom_lines, ['E-Nullclines', 'I-Nullclines', 'Initial Conditions'])
+        plt.grid(True, alpha=0.3)
+        plt.xlim(-0.05, 1.05)
+        plt.ylim(-0.05, 1.05)
+        plt.show()
