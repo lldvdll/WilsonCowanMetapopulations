@@ -86,12 +86,21 @@ class Model:
     # ------------------------------------------------------------------
     # Initial conditions
     # ------------------------------------------------------------------
-    def set_initial_conditions(self, N):
-        """Placeholder kept for API compatibility with Metapopulation.
-        Actual initial conditions are set inside run() via jitcdde's
-        constant_past mechanism.
+    def set_initial_conditions(self, initial_conditions=None):
+        """ Set initial conditions of the simulation.
+            Either pass a constant, or pass a dictionary to set different conditions.
         """
-        pass
+        N = self.network.N
+        if initial_conditions is None:
+            initial = np.full(2*N, 0.5)
+        elif isinstance(initial_conditions, float):
+            initial = np.full(2*N, initial_conditions)
+        elif isinstance(initial_conditions, dict):
+            e_val = initial_conditions['E']
+            i_val = initial_conditions['I']
+            initial = np.full(2*N, e_val)
+            initial[N:] = i_val
+        self.initial_conditions = initial
 
     # ------------------------------------------------------------------
     # Build the jitcdde system
@@ -160,7 +169,7 @@ class Model:
     # ------------------------------------------------------------------
     # Run simulation
     # ------------------------------------------------------------------
-    def run(self, initial_conditions=None):
+    def run(self):
         """Build the DDE system, set initial conditions, integrate,
         and store results in self.trajectories (shape 2 x N x T)
         and self.time_array.
@@ -172,17 +181,10 @@ class Model:
             Defaults to 0.5 for all variables.
         """
         N = self.network.N
-        n_vars = 2 * N
 
         # Build the DDE
         DDE = self.wilson_cowan()
-
-        # Initial conditions
-        if initial_conditions is not None:
-            initial = np.asarray(initial_conditions, dtype=float)
-        else:
-            initial = np.full(n_vars, 0.5)
-        DDE.constant_past(initial)
+        DDE.constant_past(self.initial_conditions)
 
         # Use adjust_diff to keep integration starting near t=0
         # so transient dynamics are visible (step_on_discontinuities
@@ -190,7 +192,7 @@ class Model:
         DDE.adjust_diff()
 
         # Integrate over the time grid
-        results = np.empty((len(self.time_array), n_vars))
+        results = np.empty((len(self.time_array), 2*N))  # 2*N, because E and I are flat in the array, E first
         for i, t_val in enumerate(self.time_array):
             if t_val <= DDE.t:
                 results[i, :] = DDE.integrate(DDE.t)

@@ -54,14 +54,19 @@ class Metapopulation():
             params=self.config['model_params']
         )
             
-    def run_simulation(self, duration=1000, dt=0.1):
+    def run_simulation(self, duration=1000, dt=0.1, initial_conditions=None):
         """ Runs n simulations with the specified model
             Results are stored in self.trajectories
             Time grid is stored in self.time_array
         """
+        # Update simulation parameters from config and arguments
+        duration = self.config['simulation'].get('duration', duration)
+        dt = self.config['simulation'].get('dt', dt)
+        initial_conditions = self.config['simulation'].get('initial_conditions', initial_conditions)
+        
         # Initialise model simulation
         self.model.set_time_grid(duration, dt)
-        self.model.set_initial_conditions(self.network.N)
+        self.model.set_initial_conditions(initial_conditions)
         
         # Run simulation
         self.model.run() 

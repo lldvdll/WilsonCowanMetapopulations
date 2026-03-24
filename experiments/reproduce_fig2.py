@@ -22,15 +22,15 @@ model.create_network()
 
 # Figure 2 (a)
 model.initialise_model()
-model.run_simulation(duration=100, dt=0.1)
+model.run_simulation()
 model.plot_trajectories()
 
 # Figure 2 (b)
 model.initialise_model(params={'tau_1': 4, 'tau_2': 40})
-model.run_simulation(duration=100, dt=0.1)
+model.run_simulation()
 model.plot_trajectories()
 
 # Figure 2 (c)
 model.initialise_model(params={'c_ee': -6, 'c_ii': -6, 'c_ei': 2.5, 'c_ie': 2.5, 'P': 0.2, 'Q': 0.2, 'tau_1': 1, 'tau_2': 1.4, 'k': 11})
-model.run_simulation(duration=100, dt=0.1)
+model.run_simulation()
 model.plot_trajectories()
