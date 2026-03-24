@@ -2,8 +2,8 @@
 model_params:
   mode: "wilson_cowan"  # Model to use
   c_ee: 1  # Inter-node E to E coupling (Synaptic weights)
-  c_ei: -1  # Intra-node E to I coupling (Synaptic weights)
-  c_ie: 1  # Intra-node I to E coupling (Synaptic weights)
+  c_ei: -1  # Intra-node I to E coupling (Synaptic weights)
+  c_ie: 1  # Intra-node E to I coupling (Synaptic weights)
   c_ii: -1  # Inter-node I to I coupling (Synaptic weights)
   tau_1: 1.0  # intra-node same-type delay (E->E, I->I)
   tau_2: 1.4  # intra-node cross-type delay (E->I, I->E)
