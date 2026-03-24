@@ -10,6 +10,7 @@ Metapopulation class
 
 import yaml
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 from src.network import Network
 from src.model import Model
@@ -54,11 +55,16 @@ class Metapopulation():
             params=self.config['model_params']
         )
             
-    def run_simulation(self, duration=1000, dt=0.1, initial_conditions=None):
+    def run_simulation(self, duration=1000, dt=0.1, initial_conditions=None, timeit=False):
         """ Runs n simulations with the specified model
             Results are stored in self.trajectories
             Time grid is stored in self.time_array
         """
+        if timeit:
+            t0 = time.time()
+            print("Running simulation with parameters:")
+            print(self.config)
+        
         # Update simulation parameters from config and arguments
         duration = self.config['simulation'].get('duration', duration)
         dt = self.config['simulation'].get('dt', dt)
@@ -70,6 +76,10 @@ class Metapopulation():
         
         # Run simulation
         self.model.run() 
+        
+        # Oprional time the run
+        if timeit:
+            print(f"Simulation runtime: {(time.time() - t0):.2f} seconds")
               
         
     def plot_trajectories(self):

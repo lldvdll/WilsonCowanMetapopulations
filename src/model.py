@@ -185,6 +185,9 @@ class Model:
         # Build the DDE
         DDE = self.wilson_cowan()
         DDE.constant_past(self.initial_conditions)
+        
+        # Eplicitly compile and tell jitcdde not to algebraically simplify the equations
+        DDE.compile_C(simplify=False)
 
         # Use adjust_diff to keep integration starting near t=0
         # so transient dynamics are visible (step_on_discontinuities
