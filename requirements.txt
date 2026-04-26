@@ -1,19 +1,30 @@
-# Core scientific stack
-numpy
-scipy
-matplotlib
-networkx
-pyyaml
+# =====================================================================
+# Tested on Python 3.10+  (developed on Python 3.13)
+# Pinned to minimum versions known to work; latest pip-resolvable versions
+# are also fine. Install with:  pip install -r requirements.txt
+# =====================================================================
 
-# DDE solver (jitcdde uses symengine for symbolic compilation -> C)
-jitcdde
-symengine
+# --- Core scientific stack ---
+numpy>=1.21
+scipy>=1.7
+matplotlib>=3.5
+networkx>=2.6
+pyyaml>=5.4
 
-# Neuroimaging data + I/O
-nibabel
+# --- DDE solver (jitcdde uses symengine for symbolic compilation -> C) ---
+jitcdde>=1.8
+symengine>=0.10
 
-# ENIGMA Toolbox (Larivière et al. 2021, Nat Methods)
-#   NOT on PyPI as `enigmatoolbox` — must install from GitHub:
-pip install git+https://github.com/MICA-MNI/ENIGMA.git
-#   Pulls in: vtk, scikit-learn, pandas, pillow as transitive deps.
+# --- Neuroimaging data + I/O ---
+nibabel>=3.2
 
+# --- ENIGMA Toolbox (Larivière et al. 2021, Nat Methods) ---
+# NOT on PyPI as `enigmatoolbox` — installed directly from GitHub.
+enigmatoolbox @ git+https://github.com/MICA-MNI/ENIGMA.git
+
+# --- Transitive deps of enigmatoolbox (listed explicitly for diagnostic
+#     clarity; pip would resolve them automatically) ---
+vtk>=9.0
+scikit-learn>=1.0
+pandas>=1.3
+pillow>=9.0
