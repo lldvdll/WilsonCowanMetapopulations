@@ -1,7 +1,19 @@
-networkx
+# Core scientific stack
 numpy
-matplotlib
-pyyaml
 scipy
+matplotlib
+networkx
+pyyaml
+
+# DDE solver (jitcdde uses symengine for symbolic compilation -> C)
 jitcdde
-sympy
+symengine
+
+# Neuroimaging data + I/O
+nibabel
+
+# ENIGMA Toolbox (Larivière et al. 2021, Nat Methods)
+#   NOT on PyPI as `enigmatoolbox` — must install from GitHub:
+pip install git+https://github.com/MICA-MNI/ENIGMA.git
+#   Pulls in: vtk, scikit-learn, pandas, pillow as transitive deps.
+

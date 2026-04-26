@@ -1,2 +1,13 @@
 *__pycache__*
 *.egg-info
+# macOS
+.DS_Store
+
+# Local scratch / temp dirs
+scrap/temp/
+experiments/temp/
+src/temp/
+experiments/Plots/temp/
+
+# Old data backups
+data/_backup_abagen_centroids/
