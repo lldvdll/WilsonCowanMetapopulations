@@ -1,0 +1,26 @@
+---
+model_params:
+  mode: "wilson_cowan"
+  c_ee: 1
+  c_ei: -1
+  c_ie: 1
+  c_ii: -1
+  tau_1: 1.0
+  tau_2: 1.4
+  rho: 10
+  beta: 10
+  alpha: 0.6
+  P: 0.5
+  Q: 0.5
+  T_e: 1
+  T_i: 1
+  k: 1
+
+network_params:
+  topology: full
+  N: 16
+  p: 0.2
+
+simulation:
+  duration: 200
+  dt: 0.1
