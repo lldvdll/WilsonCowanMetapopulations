@@ -64,14 +64,14 @@ class Model:
             self.params.update(params)
         print("Model parameters:")
         print(self.params)
-        self.time_array = None # Time grid
-        self.trajectories = None  # Reulsting simulated trajectories 2xNxT
+        self.time_array = None
+        self.trajectories = None
         self.process_mode()
 
     def process_mode(self):
         self.mode = self.params['mode']
         if self.mode == 'wilson_cowan':
-            self.C = 2  # Number of model components
+            self.C = 2
             self.components = ['Excitatory', 'Inhibitory']
 
     # ------------------------------------------------------------------
@@ -87,8 +87,8 @@ class Model:
     # Initial conditions
     # ------------------------------------------------------------------
     def set_initial_conditions(self, initial_conditions=None):
-        """ Set initial conditions of the simulation.
-            Either pass a constant, or pass a dictionary to set different conditions.
+        """Set initial conditions of the simulation.
+        Either pass a constant, or pass a dictionary to set different conditions.
         """
         N = self.network.N
         if initial_conditions is None:
@@ -115,9 +115,8 @@ class Model:
         """
         p = self.params
         N = self.network.N
-        W = self.network.A  # adjacency matrix (N x N)
+        W = self.network.A
 
-        # Unpack parameters
         c_ee = p["c_ee"]
         c_ei = p["c_ei"]
         c_ie = p["c_ie"]
@@ -133,18 +132,15 @@ class Model:
         Q = p["Q"]
         k = p["k"]
 
-        # Build symbolic RHS for 2N state variables
         f = []
 
         # --- Excitatory equations: indices 0 .. N-1 ---
         for n in range(N):
-            # Intra-node terms (delayed)
-            ee_term = c_ee * y(n, t - tau1)          # E_n(t - tau1)
-            ie_term = c_ie * y(N + n, t - tau2)      # I_n(t - tau2)
+            ee_term = c_ee * y(n, t - tau1)
+            ie_term = c_ie * y(N + n, t - tau2)
 
-            # Inter-node coupling: k * sum_j W_nj * E_j(t - rho)
             coupling = sum(
-                W[n, j] * y(j, t - rho)
+                W[n, j] * y(j, t - (rho if np.isscalar(rho) else rho[n, j]))
                 for j in range(N)
                 if W[n, j] != 0
             )
@@ -155,14 +151,13 @@ class Model:
 
         # --- Inhibitory equations: indices N .. 2N-1 ---
         for n in range(N):
-            ei_term = c_ei * y(n, t - tau2)          # E_n(t - tau2)
-            ii_term = c_ii * y(N + n, t - tau1)      # I_n(t - tau1)
+            ei_term = c_ei * y(n, t - tau2)
+            ii_term = c_ii * y(N + n, t - tau1)
 
             sigmoid_arg = ei_term + ii_term + Q
             dIn_dt = (T_i * alpha) * (-y(N + n) + _sigmoid(sigmoid_arg, beta))
             f.append(dIn_dt)
 
-        # Create the jitcdde system
         DDE = jitcdde(f)
         return DDE
 
@@ -173,36 +168,21 @@ class Model:
         """Build the DDE system, set initial conditions, integrate,
         and store results in self.trajectories (shape 2 x N x T)
         and self.time_array.
-
-        Parameters
-        ----------
-        initial_conditions : array-like, optional
-            Flat array of length 2*N for [E_0,...,E_{N-1}, I_0,...,I_{N-1}].
-            Defaults to 0.5 for all variables.
         """
         N = self.network.N
 
-        # Build the DDE
         DDE = self.wilson_cowan()
         DDE.constant_past(self.initial_conditions)
-        
-        # Eplicitly compile and tell jitcdde not to algebraically simplify the equations
         DDE.compile_C(simplify=False)
-
-        # Use adjust_diff to keep integration starting near t=0
-        # so transient dynamics are visible (step_on_discontinuities
-        # advances past all delays, hiding the initial transient).
         DDE.adjust_diff()
 
-        # Integrate over the time grid
-        results = np.empty((len(self.time_array), 2*N))  # 2*N, because E and I are flat in the array, E first
+        results = np.empty((len(self.time_array), 2*N))
         for i, t_val in enumerate(self.time_array):
-            if t_val <= DDE.t:
-                results[i, :] = DDE.integrate(DDE.t)
+            if t_val < DDE.t:
+                results[i, :] = self.initial_conditions
             else:
                 results[i, :] = DDE.integrate(t_val)
 
-        # Reshape into (2, N, T): [Excitatory, Inhibitory] x nodes x time
-        E = results[:, :N].T       # (N, T)
-        I = results[:, N:].T       # (N, T)
-        self.trajectories = np.stack([E, I], axis=0)  # (2, N, T)
+        E = results[:, :N].T
+        I = results[:, N:].T
+        self.trajectories = np.stack([E, I], axis=0)

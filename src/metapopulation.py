@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from src.network import Network
 from src.model import Model
+from src.delays import uniform_delay_matrix, distance_delay_matrix, heterogeneous_delay_matrix
 
 class Metapopulation():
     
@@ -39,7 +40,15 @@ class Metapopulation():
                     network_params[param] = val
                 
         # Create network
-        self.network = Network(network_params)       
+        self.network = Network(network_params)     
+
+    def create_delay_matrix(self, mode='uniform', **kwargs):
+        if mode == 'uniform':
+            self.delay_matrix = uniform_delay_matrix(self.network, **kwargs)
+        elif mode == 'distance':
+            self.delay_matrix = distance_delay_matrix(self.network, **kwargs)
+        elif mode == 'heterogeneous':
+            self.delay_matrix = heterogeneous_delay_matrix(self.network, **kwargs)  
         
     def initialise_model(self, params=None):
         """ Set up the model and modelling parameters"""
@@ -50,6 +59,9 @@ class Metapopulation():
                 if param in model_params.keys():
                     model_params[param] = val
         
+        if hasattr(self, 'delay_matrix'):
+            model_params['rho'] = self.delay_matrix
+            
         # Initialise model
         self.model = Model(
             self.network,
