@@ -144,8 +144,8 @@ class Model:
                 for j in range(N)
                 if W[n, j] != 0
             )
-
-            sigmoid_arg = ee_term + ie_term + P + k * coupling
+            P_n = P if np.isscalar(P) else P[n]
+            sigmoid_arg = ee_term + ie_term + P_n + k * coupling
             dEn_dt = T_e * (-y(n) + _sigmoid(sigmoid_arg, beta))
             f.append(dEn_dt)
 
