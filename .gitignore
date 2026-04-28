@@ -11,3 +11,5 @@ experiments/Plots/temp/
 
 # Old data backups
 data/_backup_abagen_centroids/
+
+.venv
