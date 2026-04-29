@@ -86,7 +86,7 @@ class Model:
     # ------------------------------------------------------------------
     # Initial conditions
     # ------------------------------------------------------------------
-    def set_initial_conditions(self, initial_conditions=None):
+    def set_initial_conditions(self, initial_conditions=None, jitter=None):
         """Set initial conditions of the simulation.
         Either pass a constant, or pass a dictionary to set different conditions.
         """
@@ -100,6 +100,12 @@ class Model:
             i_val = initial_conditions['I']
             initial = np.full(2*N, e_val)
             initial[N:] = i_val
+
+        # Without jitter, network is symmetric so is trivially synchronous
+        if jitter is not None:
+            rng = np.random.default_rng()
+            initial = initial + rng.normal(0.0, jitter, size=2*N)
+            
         self.initial_conditions = initial
 
     # ------------------------------------------------------------------

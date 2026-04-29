@@ -82,10 +82,11 @@ class Metapopulation():
         duration = self.config['simulation'].get('duration', duration)
         dt = self.config['simulation'].get('dt', dt)
         initial_conditions = self.config['simulation'].get('initial_conditions', initial_conditions)
+        jitter = self.config['simulation'].get('jitter', None)
         
         # Initialise model simulation
         self.model.set_time_grid(duration, dt)
-        self.model.set_initial_conditions(initial_conditions)
+        self.model.set_initial_conditions(initial_conditions, jitter)
         
         # Run simulation
         self.model.run() 
