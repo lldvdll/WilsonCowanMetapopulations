@@ -70,7 +70,7 @@ class Model:
 
     def process_mode(self):
         self.mode = self.params['mode']
-        if self.mode == 'wilson_cowan':
+        if self.mode in ['wilson_cowan', 'wilson_cowan_efficient']:
             self.C = 2
             self.components = ['Excitatory', 'Inhibitory']
 
@@ -113,6 +113,7 @@ class Model:
         -------
         DDE : jitcdde instance, ready for past-setting and integration.
         """
+        print("Building Wilson-Cowan DDE system with jitcdde...")
         p = self.params
         N = self.network.N
         W = self.network.A
@@ -161,27 +162,69 @@ class Model:
         DDE = jitcdde(f)
         return DDE
 
-    # ------------------------------------------------------------------
-    # Run simulation
-    # ------------------------------------------------------------------
+    def wilson_cowan_efficient(self):
+        """Fast Vectorized Euler integration for the Wilson-Cowan model."""
+        print("Using Wilson-Cowan efficient solver...")
+        p = self.params  
+        N = self.network.N
+        W = self.network.A
+        
+        dt = self.time_array[1] - self.time_array[0] if len(self.time_array) > 1 else 0.1
+        steps = len(self.time_array)
+
+        # 1. Calculate discrete delay steps
+        t1 = max(1, int(p['tau_1'] / dt))
+        t2 = max(1, int(p['tau_2'] / dt))
+        tr = max(1, int(p['rho'] / dt))
+        max_delay = max(t1, t2, tr)
+
+        # 2. Allocate total memory: history buffer + active simulation
+        total_steps = steps + max_delay
+        E = np.full((total_steps, N), self.initial_conditions[:N])
+        I = np.full((total_steps, N), self.initial_conditions[N:])
+
+        c_ee, c_ie, c_ei, c_ii = p['c_ee'], p['c_ie'], p['c_ei'], p['c_ii']
+        P, Q, beta, k, alpha = p['P'], p['Q'], p['beta'], p['k'], p['alpha']
+        T_e, T_i = p['T_e'], p['T_i']
+
+        for i in range(max_delay, total_steps - 1):
+            coupling = W @ E[i - tr]
+            e_arg = c_ee * E[i - t1] + c_ie * I[i - t2] + P + k * coupling
+            i_arg = c_ei * E[i - t2] + c_ii * I[i - t1] + Q
+            
+            dE = T_e * (-E[i] + 1.0 / (1.0 + np.exp(-beta * np.clip(e_arg, -10, 10))))
+            dI = (T_i * alpha) * (-I[i] + 1.0 / (1.0 + np.exp(-beta * np.clip(i_arg, -10, 10))))
+            
+            E[i+1] = E[i] + dE * dt
+            I[i+1] = I[i] + dI * dt
+
+        E_out = E[max_delay:]
+        I_out = I[max_delay:]
+
+        return np.hstack((E_out, I_out))
+        
     def run(self):
         """Build the DDE system, set initial conditions, integrate,
         and store results in self.trajectories (shape 2 x N x T)
         and self.time_array.
+        Additional new efficient mode run
         """
         N = self.network.N
 
-        DDE = self.wilson_cowan()
-        DDE.constant_past(self.initial_conditions)
-        DDE.compile_C(simplify=False)
-        DDE.adjust_diff()
+        if self.mode == "wilson_cowan_efficient":
+            results = self.wilson_cowan_efficient()
+        else:
+            DDE = self.wilson_cowan()
+            DDE.constant_past(self.initial_conditions)
+            DDE.compile_C(simplify=False)
+            DDE.adjust_diff()
 
-        results = np.empty((len(self.time_array), 2*N))
-        for i, t_val in enumerate(self.time_array):
-            if t_val < DDE.t:
-                results[i, :] = self.initial_conditions
-            else:
-                results[i, :] = DDE.integrate(t_val)
+            results = np.empty((len(self.time_array), 2*N))
+            for i, t_val in enumerate(self.time_array):
+                if t_val < DDE.t:
+                    results[i, :] = self.initial_conditions
+                else:
+                    results[i, :] = DDE.integrate(t_val)
 
         E = results[:, :N].T
         I = results[:, N:].T
