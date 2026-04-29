@@ -65,7 +65,9 @@ class Network:
 
     def make_ring_network(self):
         """Generate circulant network with p% neighbouring connections"""
-        p = self.config.get("p", 0.1) # Default to 10% if not provided
+        p = self.config.get("p", 0.1) # Default to 10% if not provided 
+        if p is None or isinstance(p, str):
+            return nx.cycle_graph(self.N)
         k = int(p * self.N)
         offsets = [i+1 for i in range(k)]
         return nx.circulant_graph(self.N, offsets) 
