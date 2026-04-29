@@ -17,12 +17,22 @@ class Network:
         
         # Generate network
         self.network = self.make_network()
-        self.A = self.get_adjacency_matrix()
+        self.get_adjacency_matrix()
+        if self.config.get("normalise", False):
+            self.normalise_connections()
         
     def get_adjacency_matrix(self):
         """ Creates NxN connectivity matrix from networkx graph"""
-        A = nx.to_numpy_array(self.network)
-        return A
+        self.A = nx.to_numpy_array(self.network)
+    
+    def normalise_connections(self):
+        row_sums = self.A.sum(axis=1)  # Calculate the sum of inputs for each row (node)
+        row_sums[row_sums == 0] = 1  # Prevent division by zero if a node has no connections
+        self.A = self.A / row_sums[:, np.newaxis]  # Divide each row by its sum
+        
+        # Print the sum of incoming weights for the first 3 nodes
+        row_sums = self.A.sum(axis=1)
+        print(f"Normalisation: Row sums for first 3 nodes, correct=[1. 1. 1.]: {row_sums[:3]}") 
     
     def make_network(self):
         topology = self.config["topology"]
