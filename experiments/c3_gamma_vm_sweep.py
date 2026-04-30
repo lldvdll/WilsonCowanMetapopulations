@@ -1,12 +1,22 @@
-"""c3_gamma_vm_sweep.py — Gamma-distributed velocity vm sweep at s=1.4.
+"""c3_gamma_vm_sweep.py — Conduction-velocity sensitivity (report Section
+"Conduction-velocity sensitivity").
 
-Companion to the deterministic-velocity C3 sweep: tests whether the
-shape of the BOLD-FC fit landscape changes when v is drawn from a
-truncated γ-distribution rather than fixed deterministically.
+Sweeps the mode v_m of the gamma-distributed velocity model
+(Atay-Hutt 2006) over {6, 8, 10, 12, 15} m/s at the calibrated
+operating point (eta_E = -2.15, s = 1.4, kappa_v at Forrester defaults).
+Each run uses 500 s simulation + 100 s transient discard, single seed
+(42), and ENIGMA-aligned Fisher-z preprocessing on the simulated BOLD
+FC for direct comparison against the empirical HCP rs-fMRI FC.
 
-Sweep: vm ∈ {6, 8, 10, 12, 15} m/s × η_E = -2.15 × s = 1.4 ×
-       γ-velocity (Atay-Hutt p=4.5, vl=1, vh=20) × seed 42.
-5 sims × 500 s ≈ 1.5 h wall.
+The script is idempotent: if Results/c3_gamma_vm_sweep.npz already
+contains entries for some v_m, those are reused and only the missing
+ones are simulated.
+
+Outputs:
+  Results/c3_gamma_vm_sweep.npz   per-v_m r / CI / mean|Z| / BOLD_FC_z
+  Plots/gamma_vm_FC.png           4-panel 2x2 (headline figure):
+                                  empirical FC + simulated FC at
+                                  v_m in {8, 12, 15}.
 """
 import os, sys, time
 import numpy as np
@@ -23,21 +33,30 @@ plt.rcParams.update({
     'axes.spines.top': False, 'axes.spines.right': False,
 })
 
-ETA_E      = -2.15
-S_FIXED    = 1.4
+# ---- Operating point (matches report Methods) ----
+ETA_E      = -2.15            # super-critical, just past Hopf eta_E* ~= -2.25
+S_FIXED    = 1.4              # calibrated distance scale
 VM_GRID    = [6.0, 8.0, 10.0, 12.0, 15.0]
+K_EXT      = 0.2              # Forrester default
+KAPPA_V_EE = 0.01             # Forrester default
+KAPPA_V_II = 0.025            # Forrester default
+GAMMA_P    = 4.5              # gamma shape (Atay-Hutt)
+GAMMA_VL   = 1.0              # truncation low
+GAMMA_VH   = 20.0             # truncation high
 DURATION_S = 500.0
 DT         = 0.001
 SEED       = 42
 N_BOOT     = 1000
+T_START    = max(30.0, DURATION_S * 0.2)   # 100 s transient discard
+
+# Panels shown in the headline 4-panel figure
+FIG_VM = [8.0, 12.0, 15.0]
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 RES_DIR  = os.path.join(os.path.dirname(__file__), 'Results')
 PLT_DIR  = os.path.join(os.path.dirname(__file__), 'Plots')
 NPZ      = os.path.join(RES_DIR, 'c3_gamma_vm_sweep.npz')
-PNG      = os.path.join(PLT_DIR, 'c3_gamma_vm_sweep.png')
-PNG_FC   = os.path.join(PLT_DIR, 'c3_gamma_vm_FC_compare.png')
-PNG_CMP  = os.path.join(PLT_DIR, 'c3_v_sweep_det_vs_gamma.png')
+PNG      = os.path.join(PLT_DIR, 'gamma_vm_FC.png')
 
 SC   = np.load(os.path.join(DATA_DIR, 'hcp_sc_68.npy'))
 EMP  = np.load(os.path.join(DATA_DIR, 'hcp_fc_68.npy'))
@@ -52,6 +71,8 @@ class HCPNet:
 
 
 def enigma_align(FC):
+    """ENIGMA-style alignment for fair comparison against empirical FC.
+    Half-wave rectify and Fisher-z, matching the empirical preprocessing."""
     fc = FC.copy(); np.fill_diagonal(fc, 0)
     fc = np.maximum(0, fc)
     return np.arctanh(np.clip(fc, 0, 0.999))
@@ -63,6 +84,7 @@ def fc_corr(A, B):
 
 
 def bootstrap_ci(sim, emp, n_boot=N_BOOT, seed=42):
+    """95% bootstrap CI of r(sim, emp) over the 2278 upper-triangle edges."""
     iu = np.triu_indices(sim.shape[0], k=1)
     a, b = sim[iu], emp[iu]
     n = len(a); rng = np.random.default_rng(seed)
@@ -74,34 +96,46 @@ def bootstrap_ci(sim, emp, n_boot=N_BOOT, seed=42):
 
 
 def run_one(vm):
-    print(f"\n=== vm={vm} m/s, η={ETA_E}, s={S_FIXED}, γ-velocity === "
+    print(f"\n=== vm={vm} m/s, eta={ETA_E}, s={S_FIXED}, gamma-velocity === "
           f"[{time.strftime('%H:%M:%S')}]", flush=True)
-    p = dict(eta_E=ETA_E, k_ext=0.2,
+    p = dict(eta_E=ETA_E, k_ext=K_EXT,
              delay_mode='matrix_gamma_velocity',
              distance_matrix=DIST * S_FIXED,
-             kappa_v_EE=0.01, kappa_v_II=0.025,
+             kappa_v_EE=KAPPA_V_EE, kappa_v_II=KAPPA_V_II,
              conduction_velocity=vm,
-             velocity_gamma_shape=4.5,
-             velocity_truncate_low=1.0,
-             velocity_truncate_high=20.0,
+             velocity_gamma_shape=GAMMA_P,
+             velocity_truncate_low=GAMMA_VL,
+             velocity_truncate_high=GAMMA_VH,
              seed=SEED)
     m = NextGenNetwork(HCPNet(SC), params=p)
     t0 = time.time()
     m.run(duration=DURATION_S, dt=DT)
-    t_start = max(30.0, DURATION_S * 0.2)
     Z_E, _ = m.compute_Z()
     half = Z_E.shape[1] // 2
     mean_Z = float(np.abs(Z_E[:, half:]).mean())
-    PLV = m.compute_PLV(t_start=t_start)
-    iu = np.triu_indices(SC.shape[0], k=1)
-    mean_PLV = float(PLV[iu].mean())
-    BOLD_FC = m.compute_BOLD_FC(t_start=t_start)
+    BOLD_FC = m.compute_BOLD_FC(t_start=T_START)
     BOLD_FC_z = enigma_align(BOLD_FC)
     r_a = fc_corr(BOLD_FC_z, EMP)
     lo, hi = bootstrap_ci(BOLD_FC_z, EMP)
-    print(f"  integ {time.time()-t0:.1f}s  |Z|={mean_Z:.4f}  PLV={mean_PLV:.4f}  "
+    print(f"  integ {time.time()-t0:.1f}s  |Z|={mean_Z:.4f}  "
           f"r={r_a:+.4f} [{lo:+.4f},{hi:+.4f}]", flush=True)
-    return BOLD_FC_z, mean_Z, mean_PLV, r_a, lo, hi
+    return BOLD_FC_z, mean_Z, r_a, lo, hi
+
+
+def load_existing(npz_path):
+    """Load already-completed sweep entries so we can skip them on re-run."""
+    if not os.path.exists(npz_path): return {}
+    d = np.load(npz_path, allow_pickle=True)
+    if 'vm_done' not in d.files: return {}
+    out = {}
+    for i, vm in enumerate(d['vm_done']):
+        vm = float(vm)
+        out[vm] = dict(FC_z=d[f'BOLD_FC_z_vm{vm:.0f}'],
+                       mean_Z=float(d['mean_Z'][i]),
+                       r_a=float(d['r_aligned'][i]),
+                       lo=float(d['r_lo'][i]),
+                       hi=float(d['r_hi'][i]))
+    return out
 
 
 def save_inc(done, results):
@@ -111,125 +145,83 @@ def save_inc(done, results):
                r_aligned=np.array([results[v]['r_a']  for v in done]),
                r_lo=np.array([results[v]['lo']        for v in done]),
                r_hi=np.array([results[v]['hi']        for v in done]),
-               mean_Z=np.array([results[v]['mean_Z']  for v in done]),
-               mean_PLV=np.array([results[v]['mean_PLV'] for v in done]))
+               mean_Z=np.array([results[v]['mean_Z']  for v in done]))
     for v in done:
         out[f'BOLD_FC_z_vm{v:.0f}'] = results[v]['FC_z']
     np.savez(NPZ, **out)
 
 
-def make_plots(done, results):
-    if not done: return
-    iu = np.triu_indices(SC.shape[0], k=1)
-    r_sc_emp = float(np.corrcoef(SC[iu], EMP[iu])[0, 1])
-    vs = np.array(done)
-    rs = np.array([results[v]['r_a'] for v in done])
-    los = np.array([results[v]['lo'] for v in done])
-    his = np.array([results[v]['hi'] for v in done])
+def make_headline_figure(results):
+    """4-panel 2x2 figure: empirical FC + simulated FC at v_m in {8,12,15}.
+    Per-panel vmax (Fisher-z magnitudes are not comparable across panels)."""
+    if not all(v in results for v in FIG_VM):
+        missing = [v for v in FIG_VM if v not in results]
+        print(f"[fig] missing panels {missing}; skip headline figure", flush=True)
+        return
 
-    # γ-only plot
-    fig, ax = plt.subplots(figsize=(8, 4.5))
-    ax.fill_between(vs, los, his, color='#2ca02c', alpha=0.20,
-                    label='95% bootstrap CI')
-    ax.plot(vs, rs, 'o-', color='#2ca02c', lw=2, ms=8,
-            label='r(simulated BOLD FC, empirical)')
-    ax.axhline(r_sc_emp, color='#d62728', lw=1.3, ls='--',
-               label=f'r(SC, empirical) = {r_sc_emp:.3f}')
-    ax.axhline(0, color='grey', lw=0.5, ls=':')
-    if len(rs):
-        i_best = int(np.nanargmax(rs))
-        ax.plot(vs[i_best], rs[i_best], 'o', mfc='none', mec='#d62728',
-                ms=14, mew=2.0, label=f'best $v_m$ = {vs[i_best]:.0f} m/s')
-    ax.set_xlabel(r'γ-distribution velocity mode $v_m$ (m/s)')
-    ax.set_ylabel('r(simulated BOLD FC, empirical FC)')
-    ax.set_title(rf'BOLD-FC fit vs $v_m$ (γ-velocity) at $\eta_E$={ETA_E}, '
-                 rf'$s$={S_FIXED} (volume centroids)')
-    ax.legend(loc='best', frameon=False, fontsize=9)
+    fig, axes = plt.subplots(2, 2, figsize=(11, 10))
+    ax = axes.flatten()
+    panels = [(EMP, 'Empirical FC\n(HCP rs-fMRI, Fisher-z)',
+               float(np.max(EMP)))]
+    for vm in FIG_VM:
+        M = results[vm]['FC_z']
+        r = results[vm]['r_a']
+        title = (rf'Simulated FC, $\gamma$ $v_m$={vm:.0f} m/s (Fisher-z)'
+                 + '\n'
+                 + rf'r = {r:+.3f}')
+        panels.append((M, title, float(np.nanmax(M))))
+    for a, (M, title, vmx) in zip(ax, panels):
+        im = a.imshow(M, cmap='viridis', vmin=0, vmax=vmx,
+                      interpolation='nearest')
+        a.axhline(33.5, color='black', lw=0.5)
+        a.axvline(33.5, color='black', lw=0.5)
+        a.set_title(title, fontsize=11)
+        a.set_xlabel('Region (DK68 index)')
+        a.set_ylabel('Region (DK68 index)')
+        fig.colorbar(im, ax=a, fraction=0.046, pad=0.02)
     fig.tight_layout()
     fig.savefig(PNG)
     plt.close(fig)
-
-    # FC matrices comparison (vm=6 and vm=12)
-    if all(v in results for v in [6.0, 12.0]):
-        fc_vmax = float(max(np.max(results[6.0]['FC_z']),
-                            np.max(results[12.0]['FC_z']),
-                            np.max(EMP)))
-        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-        panels = [
-            (EMP, 'Empirical BOLD FC\n(ENIGMA HCP rs-fMRI, Fisher-z)'),
-            (results[6.0]['FC_z'],
-             f'Simulated BOLD FC, γ $v_m$=6 m/s\nr = {results[6.0]["r_a"]:+.3f}'),
-            (results[12.0]['FC_z'],
-             f'Simulated BOLD FC, γ $v_m$=12 m/s\nr = {results[12.0]["r_a"]:+.3f}'),
-        ]
-        for ax, (M, title) in zip(axes, panels):
-            im = ax.imshow(M, cmap='viridis', vmin=0, vmax=fc_vmax,
-                           interpolation='nearest')
-            ax.axhline(33.5, color='black', lw=0.5)
-            ax.axvline(33.5, color='black', lw=0.5)
-            ax.set_title(title)
-            ax.set_xlabel('Region (DK68 index)')
-            ax.set_ylabel('Region (DK68 index)' if ax is axes[0] else '')
-            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
-        fig.tight_layout()
-        fig.savefig(PNG_FC)
-        plt.close(fig)
-
-    # Combined plot: deterministic vs γ
-    det_npz_path = os.path.join(RES_DIR, 'c2_v_sweep_supercritical.npz')
-    if os.path.exists(det_npz_path):
-        d_det = np.load(det_npz_path)
-        v_det = d_det['v_done']; r_det = d_det['r_aligned']
-        lo_det = d_det['r_lo']; hi_det = d_det['r_hi']
-
-        fig, ax = plt.subplots(figsize=(8, 4.5))
-        ax.fill_between(v_det, lo_det, hi_det, color='#1f77b4', alpha=0.20)
-        ax.plot(v_det, r_det, 'o-', color='#1f77b4', lw=2, ms=8,
-                label='deterministic v')
-        ax.fill_between(vs, los, his, color='#2ca02c', alpha=0.20)
-        ax.plot(vs, rs, 'o-', color='#2ca02c', lw=2, ms=8,
-                label=r'γ-distributed velocity (mode $v_m$)')
-        ax.axhline(r_sc_emp, color='#d62728', lw=1.3, ls='--',
-                   label=f'r(SC, empirical) = {r_sc_emp:.3f}')
-        ax.axhline(0, color='grey', lw=0.5, ls=':')
-        ax.set_xlabel(r'Conduction velocity (m/s)')
-        ax.set_ylabel('r(simulated BOLD FC, empirical FC)')
-        ax.set_title(rf'Deterministic vs γ velocity at $\eta_E$={ETA_E}, '
-                     rf'$s$={S_FIXED}, volume centroids')
-        ax.legend(loc='best', frameon=False, fontsize=9)
-        fig.tight_layout()
-        fig.savefig(PNG_CMP)
-        plt.close(fig)
+    print(f"[fig] saved {PNG}", flush=True)
 
 
 def main():
     os.makedirs(RES_DIR, exist_ok=True)
     os.makedirs(PLT_DIR, exist_ok=True)
-    print(f"=== c3_gamma_vm_sweep η={ETA_E}, s={S_FIXED}, γ-velocity ===",
-          flush=True)
-    print(f"start: {time.strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
-    print(f"vm grid: {VM_GRID}\n", flush=True)
-    t0_total = time.time()
+    print(f"=== c3_gamma_vm_sweep eta_E={ETA_E}, s={S_FIXED}, "
+          f"gamma-velocity ===", flush=True)
+    print(f"vm grid: {VM_GRID}", flush=True)
 
-    results = {}
-    done = []
+    results = load_existing(NPZ)
+    if results:
+        print(f"resuming from {NPZ}: already have "
+              f"{sorted(results.keys())}", flush=True)
+
+    t0_total = time.time()
     for vm in VM_GRID:
+        if vm in results:
+            print(f"\n--- vm={vm} m/s already done "
+                  f"(r={results[vm]['r_a']:+.4f}); skip", flush=True)
+            continue
         try:
-            FC_z, mZ, mP, r, lo, hi = run_one(float(vm))
-            results[float(vm)] = dict(FC_z=FC_z, mean_Z=mZ, mean_PLV=mP,
-                                     r_a=r, lo=lo, hi=hi)
-            done.append(float(vm))
-            save_inc(done, results); make_plots(done, results)
+            FC_z, mZ, r, lo, hi = run_one(float(vm))
+            results[float(vm)] = dict(FC_z=FC_z, mean_Z=mZ,
+                                      r_a=r, lo=lo, hi=hi)
+            done = sorted(results.keys())
+            save_inc(done, results)
         except Exception as e:
             print(f"  !! vm={vm} FAILED: {e}", flush=True)
 
-    print(f"\n=== r vs vm table ===", flush=True)
+    make_headline_figure(results)
+
+    print(f"\n=== r vs vm summary ===", flush=True)
     for vm in VM_GRID:
         if vm in results:
-            print(f"  vm={vm:5.1f} m/s  r={results[vm]['r_a']:+.4f} "
-                  f"[{results[vm]['lo']:+.4f},{results[vm]['hi']:+.4f}]",
-                  flush=True)
-    print(f"\n=== DONE in {(time.time()-t0_total)/60:.1f} min ===", flush=True)
+            r = results[vm]
+            print(f"  vm={vm:5.1f} m/s  r={r['r_a']:+.4f} "
+                  f"[{r['lo']:+.4f}, {r['hi']:+.4f}]", flush=True)
+    print(f"\n=== DONE in {(time.time()-t0_total)/60:.1f} min ===",
+          flush=True)
 
 
 if __name__ == '__main__':

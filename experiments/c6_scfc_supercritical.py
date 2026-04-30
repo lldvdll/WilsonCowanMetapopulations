@@ -1,61 +1,52 @@
-"""c6_scfc_supercritical.py — SC vs sim BOLD FC vs empirical FC reality check.
+"""c6_scfc_supercritical.py — Structural baseline for the
+"Model versus structural baseline" paragraph of the report.
 
-At main-line operating point (η_E=-2.15, BEST_S, BEST_KV_SCALE,
-BEST_DELAY_MODE) compare three matrices:
-  (a) row-normalised SC (HCP-DK68)
-  (b) simulated BOLD FC (Balloon-Windkessel from R_E)
-  (c) empirical HCP rs-fMRI FC (ENIGMA-aligned)
+Computes the headline reference number r(SC, empirical FC) = 0.403 on
+the HCP DK68 dataset, plus two supplementary statistics that the report
+text does not currently quote but that are useful when discussing the
+gap between r(SC, empirical) and r(simulated, empirical):
 
-BEST_DELAY_MODE is whichever C5 mode achieved highest r(BOLD, emp). If
-gamma wins, this script automatically averages over GAMMA_SEEDS for the
-sim BOLD FC (mean ± SE on r); for deterministic modes a single seed.
+  - Steiger Z (correlated r's, two share emp): tests whether SC and
+    simulated BOLD FC predict empirical FC equally well.
+  - Partial r(simulated BOLD, empirical | SC): the simulated BOLD FC's
+    explanatory power beyond what SC already provides.
 
-Statistical reporting:
-  r(sim BOLD, emp)            with bootstrap CI (or seed mean ± SE for gamma)
-  r(SC, emp)                  baseline
-  Steiger Z + p               (correlated r's, share emp)
-  partial r(sim, emp | SC)    with bootstrap CI
-  r(sim, SC)                  redundancy with structure
+For the simulated BOLD FC at the operating point (eta_E = -2.15,
+s = 1.4, v_m = 12 m/s, kappa_v at the argmax = 5x defaults,
+gamma-distributed velocity), the script first tries to read it from the
+existing kappa_v sweep (Results/c3_kappa_v_sweep_HCP.npz, BOLD_FC_z at
+kappa_v_scale = 5). If that entry is missing, it falls back to running
+a fresh single-seed simulation.
 
-Figure: 3-panel matrix grid (SC | sim BOLD FC | empirical FC) with
-overlaid r values and Steiger Z annotation.
+Outputs:
+  Results/c6_scfc_supercritical.npz   r(SC,emp), r(BOLD,emp), Steiger Z
+                                       and p, partial r and CI.
 """
 import os, sys, time
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy import stats
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 sys.path.insert(0, os.path.dirname(__file__))
 from next_gen_network import NextGenNetwork
 
-plt.rcParams.update({
-    'figure.dpi': 150, 'savefig.dpi': 150, 'savefig.bbox': 'tight',
-    'font.size': 11, 'axes.labelsize': 11, 'axes.titlesize': 11,
-    'xtick.labelsize': 10, 'ytick.labelsize': 10, 'legend.fontsize': 9,
-    'axes.spines.top': False, 'axes.spines.right': False,
-})
-
+# ---- Operating point (matches c3_kappa_v_sweep_HCP.py) ----
 ETA_E              = -2.15
-BEST_S             = 1.4      # from C2 (best_s, r=+0.157)
-BEST_KV_SCALE      = 5.0      # from C4 (r=+0.216)
-BEST_DELAY_MODE    = 'gamma'      # default for super-critical Gamma vm=12 main line; orchestrator overrides from C5
-VM_FIXED           = 12.0  # main-line vm (Forrester representative)
+BEST_S             = 1.4
+BEST_KV_SCALE      = 5.0      # argmax of the kappa_v sweep
+VM_FIXED           = 12.0
 DEFAULT_KV_EE      = 0.01
 DEFAULT_KV_II      = 0.025
-
-GAMMA_SEEDS        = [42]   # SINGLE SEED (multi-seed averaging skipped per user request)
-
-DURATION_S = 500.0
-DT         = 0.001
-SEED       = 42
-N_BOOT     = 1000
+DURATION_S         = 500.0
+DT                 = 0.001
+SEED               = 42
+N_BOOT             = 1000
+T_START            = max(30.0, DURATION_S * 0.2)
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), '..', 'data')
 RES_DIR  = os.path.join(os.path.dirname(__file__), 'Results')
-PLT_DIR  = os.path.join(os.path.dirname(__file__), 'Plots')
+KV_NPZ   = os.path.join(RES_DIR, 'c3_kappa_v_sweep_HCP.npz')
 NPZ      = os.path.join(RES_DIR, 'c6_scfc_supercritical.npz')
-PNG      = os.path.join(PLT_DIR, 'c6_scfc_supercritical.png')
 
 SC   = np.load(os.path.join(DATA_DIR, 'hcp_sc_68.npy'))
 EMP  = np.load(os.path.join(DATA_DIR, 'hcp_fc_68.npy'))
@@ -123,78 +114,47 @@ def steiger_z(r12, r13, r23, n):
     return float(Z), float(p)
 
 
-def make_delay_kwargs(mode, best_s):
-    """Build NG params for the chosen best delay mode from C5."""
-    if mode == 'constant':
-        matrix_D = (DIST * best_s) / VM_FIXED
-        mask = SC > 0
-        const_delay_s = float(matrix_D[mask].mean())
-        return dict(delay_mode='constant', delay=const_delay_s,
-                    distance_matrix=np.zeros_like(DIST))
-    elif mode == 'matrix':
-        return dict(delay_mode='matrix',
-                    distance_matrix=DIST * best_s,
-                    conduction_velocity=VM_FIXED)
-    elif mode == 'gamma':
-        return dict(delay_mode='matrix_gamma_velocity',
-                    distance_matrix=DIST * best_s,
-                    conduction_velocity=VM_FIXED,
-                    velocity_gamma_shape=4.5,
-                    velocity_truncate_low=1.0,
-                    velocity_truncate_high=20.0)
-    raise ValueError(f"Unknown delay mode: {mode}")
+def load_simulated_FC_from_kv_sweep():
+    """Reuse Results/c3_kappa_v_sweep_HCP.npz, BOLD_FC_z at kappa_v_scale=5
+    if available."""
+    if not os.path.exists(KV_NPZ): return None
+    d = np.load(KV_NPZ, allow_pickle=True)
+    key = f'BOLD_FC_z_kv{BEST_KV_SCALE:.2f}'
+    if key not in d.files: return None
+    print(f"reusing simulated FC from {KV_NPZ} (key={key})", flush=True)
+    return np.array(d[key])
 
 
-def run_one(seed, delay_kwargs):
+def run_simulation():
+    """Fallback single-seed simulation at the operating point."""
+    print(f"running fresh simulation at operating point "
+          f"(kappa_v_scale={BEST_KV_SCALE}, gamma-velocity)", flush=True)
     p = dict(eta_E=ETA_E, k_ext=0.2,
-             kappa_v_EE=DEFAULT_KV_EE * float(BEST_KV_SCALE),
-             kappa_v_II=DEFAULT_KV_II * float(BEST_KV_SCALE),
-             seed=seed, **delay_kwargs)
+             delay_mode='matrix_gamma_velocity',
+             distance_matrix=DIST * BEST_S,
+             kappa_v_EE=DEFAULT_KV_EE * BEST_KV_SCALE,
+             kappa_v_II=DEFAULT_KV_II * BEST_KV_SCALE,
+             conduction_velocity=VM_FIXED,
+             velocity_gamma_shape=4.5,
+             velocity_truncate_low=1.0,
+             velocity_truncate_high=20.0,
+             seed=SEED)
     m = NextGenNetwork(HCPNet(SC), params=p)
     t0 = time.time()
     m.run(duration=DURATION_S, dt=DT)
-    print(f"    integ {time.time()-t0:.1f}s (seed={seed})", flush=True)
-    t_start = max(30.0, DURATION_S * 0.2)
-    BOLD_FC = m.compute_BOLD_FC(t_start=t_start)
-    BOLD_FC_z = enigma_align(BOLD_FC)
-    PLV = m.compute_PLV(t_start=t_start)
-    return BOLD_FC_z, PLV
+    print(f"  integ {time.time()-t0:.1f}s", flush=True)
+    BOLD_FC = m.compute_BOLD_FC(t_start=T_START)
+    return enigma_align(BOLD_FC)
 
 
 def main():
     os.makedirs(RES_DIR, exist_ok=True)
-    os.makedirs(PLT_DIR, exist_ok=True)
-    print(f"=== c6_scfc_supercritical η_E={ETA_E}, s={BEST_S}, "
-          f"κv_scale={BEST_KV_SCALE}, delay={BEST_DELAY_MODE} ===", flush=True)
-    print(f"start: {time.strftime('%Y-%m-%d %H:%M:%S')}", flush=True)
+    print(f"=== c6_scfc_supercritical eta_E={ETA_E}, s={BEST_S}, "
+          f"kappa_v_scale={BEST_KV_SCALE} ===", flush=True)
 
-    delay_kw = make_delay_kwargs(BEST_DELAY_MODE, BEST_S)
-
-    # Run sim(s)
-    if BEST_DELAY_MODE == 'gamma':
-        print(f"  gamma → averaging over {len(GAMMA_SEEDS)} seeds", flush=True)
-        BOLD_seeds = []
-        PLV_seeds = []
-        r_seeds = []
-        for sd in GAMMA_SEEDS:
-            BFC_z, PLV = run_one(sd, delay_kw)
-            BOLD_seeds.append(BFC_z)
-            PLV_seeds.append(PLV)
-            r_seeds.append(fc_corr(BFC_z, EMP))
-            print(f"    r(BOLD,emp) seed {sd} = {r_seeds[-1]:+.4f}", flush=True)
-        BOLD_FC_z = np.mean(BOLD_seeds, axis=0)
-        PLV       = np.mean(PLV_seeds,  axis=0)
-        r_seeds   = np.array(r_seeds)
-        n_seeds   = len(r_seeds)
-        r_mean    = float(r_seeds.mean())
-        r_se      = float(r_seeds.std(ddof=1) / np.sqrt(n_seeds))
-        print(f"  → r mean ± SE = {r_mean:+.4f} ± {r_se:.4f}", flush=True)
-    else:
-        BOLD_FC_z, PLV = run_one(SEED, delay_kw)
-        r_seeds = np.array([fc_corr(BOLD_FC_z, EMP)])
-        n_seeds = 1
-        r_mean  = float(r_seeds[0])
-        r_se    = 0.0
+    BOLD_FC_z = load_simulated_FC_from_kv_sweep()
+    if BOLD_FC_z is None:
+        BOLD_FC_z = run_simulation()
 
     iu = np.triu_indices(SC.shape[0], k=1)
     sc_v   = SC[iu]
@@ -202,70 +162,37 @@ def main():
     emp_v  = EMP[iu]
     n_pair = len(sc_v)
 
-    r_bold_emp = float(np.corrcoef(bold_v, emp_v)[0, 1])
     r_sc_emp   = float(np.corrcoef(sc_v,   emp_v)[0, 1])
+    r_bold_emp = float(np.corrcoef(bold_v, emp_v)[0, 1])
     r_sc_bold  = float(np.corrcoef(sc_v,   bold_v)[0, 1])
-    r_plv_emp  = float(np.corrcoef(PLV[iu], emp_v)[0, 1])
 
-    bold_lo, bold_hi = bootstrap_r_ci(BOLD_FC_z, EMP)
     sc_lo,   sc_hi   = bootstrap_r_ci(SC,        EMP)
+    bold_lo, bold_hi = bootstrap_r_ci(BOLD_FC_z, EMP)
     Z_st, p_st = steiger_z(r_sc_emp, r_bold_emp, r_sc_bold, n_pair)
 
     r_part = partial_r(bold_v, emp_v, sc_v)
     p_lo, p_hi = bootstrap_partial_r_ci(bold_v, emp_v, sc_v)
 
-    print(f"\n  r(SC,   emp)   = {r_sc_emp:+.4f} [{sc_lo:+.4f}, {sc_hi:+.4f}]",
-          flush=True)
-    print(f"  r(BOLD, emp)   = {r_bold_emp:+.4f} [{bold_lo:+.4f}, {bold_hi:+.4f}]",
-          flush=True)
-    if n_seeds > 1:
-        print(f"  r(BOLD, emp)   per-seed = {[f'{r:+.3f}' for r in r_seeds]}  "
-              f"mean ± SE = {r_mean:+.4f} ± {r_se:.4f}", flush=True)
-    print(f"  r(SC,   BOLD)  = {r_sc_bold:+.4f}", flush=True)
-    print(f"  r(PLV,  emp)   = {r_plv_emp:+.4f}  (neural ~10 Hz vs BOLD ~0.05 Hz)",
-          flush=True)
-    print(f"  Steiger Z (SC vs BOLD against emp) = {Z_st:+.3f}, p = {p_st:.3e}",
-          flush=True)
-    print(f"  partial r(BOLD, emp | SC) = {r_part:+.4f} "
+    print(f"\n  r(SC,   empirical) = {r_sc_emp:+.4f} "
+          f"[{sc_lo:+.4f}, {sc_hi:+.4f}]", flush=True)
+    print(f"  r(BOLD, empirical) = {r_bold_emp:+.4f} "
+          f"[{bold_lo:+.4f}, {bold_hi:+.4f}]", flush=True)
+    print(f"  r(SC,   BOLD)      = {r_sc_bold:+.4f}", flush=True)
+    print(f"  Steiger Z (SC vs BOLD against empirical) "
+          f"= {Z_st:+.3f}, p = {p_st:.3e}", flush=True)
+    print(f"  partial r(BOLD, empirical | SC) = {r_part:+.4f} "
           f"[{p_lo:+.4f}, {p_hi:+.4f}]", flush=True)
 
-    np.savez(NPZ, eta_E=ETA_E, best_s=BEST_S, best_kv_scale=BEST_KV_SCALE,
-             best_delay_mode=BEST_DELAY_MODE, n_seeds=n_seeds,
-             duration_s=DURATION_S, seed=SEED, gamma_seeds=np.array(GAMMA_SEEDS),
-             SC=SC, BOLD_FC_z=BOLD_FC_z, EMP=EMP, PLV=PLV,
-             r_seeds=r_seeds, r_mean_seeds=r_mean, r_se_seeds=r_se,
-             r_bold_emp=r_bold_emp, r_sc_emp=r_sc_emp,
-             r_sc_bold=r_sc_bold, r_plv_emp=r_plv_emp,
-             r_bold_emp_lo=bold_lo, r_bold_emp_hi=bold_hi,
-             r_sc_emp_lo=sc_lo, r_sc_emp_hi=sc_hi,
+    np.savez(NPZ,
+             eta_E=ETA_E, best_s=BEST_S, best_kv_scale=BEST_KV_SCALE,
+             vm_fixed=VM_FIXED, duration_s=DURATION_S, seed=SEED,
+             SC=SC, EMP=EMP, BOLD_FC_z=BOLD_FC_z,
+             r_sc_emp=r_sc_emp, r_sc_emp_lo=sc_lo, r_sc_emp_hi=sc_hi,
+             r_bold_emp=r_bold_emp, r_bold_emp_lo=bold_lo,
+             r_bold_emp_hi=bold_hi, r_sc_bold=r_sc_bold,
              steiger_Z=Z_st, steiger_p=p_st,
              partial_r=r_part, partial_r_lo=p_lo, partial_r_hi=p_hi)
-
-    # 3-panel order: SC | Empirical | Simulated.
-    # Each panel has its own colorbar so structure within each is legible
-    # (empirical Fisher-z range is much narrower than simulated).
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    panels = [
-        (SC,        'Structural connectivity\n(ENIGMA HCP, raw edge weights)',
-         float(np.max(SC))),
-        (EMP,       'Empirical BOLD FC\n(ENIGMA HCP rs-fMRI, Fisher-z)',
-         float(np.max(EMP))),
-        (BOLD_FC_z, 'Simulated BOLD FC\n(NG model, ENIGMA-aligned Fisher-z)',
-         float(np.max(BOLD_FC_z))),
-    ]
-    for ax, (M, title, vmx) in zip(axes, panels):
-        im = ax.imshow(M, cmap='viridis', vmin=0, vmax=vmx,
-                       interpolation='nearest')
-        ax.axhline(33.5, color='black', lw=0.5)
-        ax.axvline(33.5, color='black', lw=0.5)
-        ax.set_title(title)
-        ax.set_xlabel('Region (DK68 index)')
-        ax.set_ylabel('Region (DK68 index)' if ax is axes[0] else '')
-        fig.colorbar(im, ax=ax, fraction=0.046, pad=0.02)
-    fig.tight_layout()
-    fig.savefig(PNG)
-    plt.close(fig)
-    print(f"\nSaved: {PNG}", flush=True)
+    print(f"\nSaved: {NPZ}", flush=True)
 
 
 if __name__ == '__main__':

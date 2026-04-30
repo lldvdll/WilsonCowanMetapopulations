@@ -22,8 +22,12 @@ nibabel>=3.2
 # NOT on PyPI as `enigmatoolbox` — installed directly from GitHub.
 enigmatoolbox @ git+https://github.com/MICA-MNI/ENIGMA.git
 
+# --- DK68 volumetric atlas + centroids (Markello et al. 2021, eLife) ---
+abagen>=0.1.3
+
 # --- Transitive deps of enigmatoolbox (listed explicitly for diagnostic
-#     clarity; pip would resolve them automatically) ---
+#     clarity; pip would resolve them automatically). pandas/scikit-learn
+#     are also pulled in by abagen. ---
 vtk>=9.0
 scikit-learn>=1.0
 pandas>=1.3
