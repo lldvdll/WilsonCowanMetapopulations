@@ -20,10 +20,10 @@ import networkx as nx
 
 # Stage parameters
 MS_STAGES = {
-    0: {'vm': 6.0, 'p': 10.0, 'description': 'Healthy baseline'},
-    1: {'vm': 4.0, 'p': 4.5,  'description': 'Early MS: focal demyelination'},
-    2: {'vm': 2.0, 'p': 2.5,  'description': 'Moderate MS: widespread demyelination'},
-    3: {'vm': 2.0, 'p': 2.5,  'description': 'Severe MS: axonal loss'},
+    0: {'vm': 6.0, 'p': 10.0, 'tau_1': 1.0, 'tau_2': 1.4, 'description': 'Healthy baseline'},
+    1: {'vm': 4.0, 'p': 4.5,  'tau_1': 2.0, 'tau_2': 2.8, 'description': 'Early progressive MS: focal demyelination'},
+    2: {'vm': 2.0, 'p': 2.5,  'tau_1': 4.0, 'tau_2': 5.6, 'description': 'Moderate progressive MS: widespread demyelination'},
+    3: {'vm': 1.5, 'p': 2.01,  'tau_1': 5.0, 'tau_2': 7.0, 'description': 'Severe progressive MS: axonal loss'},
 }
 
 # Topology-specific edge removal rates for stage 3
