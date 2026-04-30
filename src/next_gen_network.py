@@ -76,37 +76,38 @@ def default_params():
         # synaptic rates
         alpha_ij=40.0,
         
-        # Conduction velocity (m/s) for computing delays from distances
-        # When delay_mode='matrix_gamma_velocity', this is the MEAN of the
-        # Gamma distribution of per-edge velocities (E[v] = p * q = v_mean).
-        conduction_velocity=12.0,
+        # Conduction velocity (m/s) for computing delays from distances.
+        # For delay_mode='matrix_gamma_velocity' (the default below),
+        # this is the MODE of the Gamma distribution of per-edge
+        # velocities (q = v_mean / (p-1) makes mode = v_mean).
+        # Default 6.0 matches Kavya's WC delay code (Atay-Hutt 2006).
+        conduction_velocity=6.0,
 
-        # Fixed delay (seconds) used by 'constant' mode (and 'gamma' mean)
+        # Fixed delay (seconds) used by 'constant' mode
         delay=0.010,
 
-        # Delay mode (see _build_delay_matrix docstring for full list):
-        #   'constant', 'matrix', 'matrix_gamma_velocity',
-        #   'distance', 'gamma', 'heterogeneous_velocity'
-        delay_mode='constant',
-
-        # For 'gamma' mode: shape param of pure Gamma delay distribution
-        # (delays drawn directly, no distance/velocity factorisation).
-        delay_gamma_shape=5.0,
-
-        # For 'heterogeneous_velocity' mode (legacy, graph-hops based):
-        # std of Normal-distributed per-edge velocities.
-        velocity_std=2.0,
+        # Delay mode — three supported (see _build_delay_matrix docstring):
+        #   'constant'              uniform scalar delay across all edges
+        #   'matrix'                T_ij = D[i,j] / v (deterministic per-edge)
+        #   'matrix_gamma_velocity' T_ij = D[i,j] / v_ij with v_ij from
+        #                           Atay-Hutt truncated Gamma sampler;
+        #                           algorithm + parameters match Kavya's
+        #                           WC delay code (src/delays.py:
+        #                           heterogeneous_delay_matrix) for cross-
+        #                           track methodological consistency.
+        # Default = 'matrix_gamma_velocity' (project main-line delay model).
+        delay_mode='matrix_gamma_velocity',
 
         # For 'matrix_gamma_velocity' mode (Atay & Hutt 2006, Eq. 5.2):
         # Truncated Gamma distribution g(v) ∝ v^(p-1) * exp(-v/q) on (v_lo, v_hi).
-        # Mean E[v] = p*q is set to conduction_velocity (q = v_mean / p);
-        # higher shape p ⇒ tighter distribution; clip to (v_lo, v_hi).
-        velocity_gamma_shape=5.0,         # p (Atay & Hutt suggest p ~ 4-7 for cortex)
-        velocity_truncate_low=1.0,        # m/s   (avoid divergent delays)
-        velocity_truncate_high=60.0,      # m/s   (biological max for myelinated)
+        # Mode of distribution = v_mean (q = v_mean / (p-1)); rejection truncated
+        # to (v_lo, v_hi). All defaults match Kavya's WC delay code
+        # (src/delays.py:heterogeneous_delay_matrix) for cross-track consistency.
+        velocity_gamma_shape=4.5,         # p (Kavya default; Atay-Hutt 2006)
+        velocity_truncate_low=1.0,        # m/s (Kavya default)
+        velocity_truncate_high=20.0,      # m/s (Kavya default)
 
-        # Random seed for stochastic delay modes (gamma, heterogeneous_velocity,
-        # matrix_gamma_velocity)
+        # Random seed for stochastic 'matrix_gamma_velocity' delay mode
         seed=42,
     )
 
@@ -182,24 +183,16 @@ class NextGenNetwork:
     def _build_delay_matrix(self):
         """Compute conduction delay T_ij (seconds) for each directed edge.
 
-        Six delay modes, grouped by what determines the delay:
+        Three supported delay modes:
 
-        ── A. Distance-independent (delay scalar; ignores anatomy) ────────
+        ── A. Distance-independent (homogeneous baseline) ─────────────────
             'constant'   : All edges share params['delay'] seconds.
-                           Use as homogeneous-delay baseline.
-            'gamma'      : Delays drawn directly from a Gamma distribution
-                           with mean = params['delay'] and shape =
-                           params['delay_gamma_shape']. NOT factorised into
-                           distance × velocity — pure stochastic delays.
 
         ── B. Distance-based, single global velocity (Forrester paper) ────
             'matrix'     : T_ij = D[i,j] / v
                               D = params['distance_matrix']      (N×N, mm)
                               v = params['conduction_velocity']  (m/s)
                            Matches Forrester p.7: T_ij = d_ij / v.
-                           Use with HCP distances OR with synthetic
-                           distances from idealised topologies (e.g.
-                           Kavya's src/distance_delays.compute_distance_matrix).
 
         ── C. Distance-based, heterogeneous per-edge velocity ─────────────
             'matrix_gamma_velocity'
@@ -212,21 +205,9 @@ class NextGenNetwork:
                                      (q = v_mean / p)
                            clipped to (velocity_truncate_low,
                                        velocity_truncate_high) m/s.
-                           Models myelinated cortico-cortical conduction
-                           velocity heterogeneity (Nunez observations,
-                           Atay & Hutt Fig 1; peak ~8 m/s, range 0–24).
-
-        ── D. Legacy modes (graph-hops based; dimensionally weak) ─────────
-            'distance'   : T_ij = max(graph_hops(j,i), 1) / v.
-                           Hops are unitless ⇒ unit of delay is s·hops/m.
-                           Useful only as a placeholder for Conti-style
-                           abstract topology comparisons; for biophysical
-                           setups prefer 'matrix' with explicit distances.
-            'heterogeneous_velocity'
-                         : Same as 'distance' but per-edge velocities
-                           drawn from Normal(v, params['velocity_std'])
-                           clipped to ≥ 1 m/s. Same dimensional caveat
-                           as 'distance'.
+                           Velocity sampler shared with Kavya's WC delay
+                           code via src/delays.py:sample_gamma_velocity_matrix
+                           for cross-track methodological consistency.
 
         Notes
         -----
@@ -234,8 +215,8 @@ class NextGenNetwork:
         - All distance matrices D are expected in MILLIMETRES.
         - All velocities are in METRES PER SECOND.
         - Conversion: T(s) = D(mm) / (v(m/s) * 1000).
-        - Random modes (gamma, matrix_gamma_velocity, heterogeneous_velocity)
-          use params['seed'] for reproducibility.
+        - Stochastic mode 'matrix_gamma_velocity' uses params['seed'] for
+          reproducibility.
         """
         mode = self.p.get('delay_mode', 'constant')
         fixed_delay = self.p['delay']
@@ -256,8 +237,17 @@ class NextGenNetwork:
             ])
 
         elif mode == 'matrix_gamma_velocity':
-            # T_ij = D[i,j] / v_ij,  v_ij ~ truncated Gamma
+            # T_ij = D[i,j] / v_ij,  v_ij ~ truncated Gamma per (undirected) edge
             # Reference: Atay & Hutt (2006), SIAM J. Appl. Dyn. Syst. 5(4), Eq. 5.2.
+            #
+            # Algorithm matches Kavya's WC delay code semantics
+            # (src/delays.py:heterogeneous_delay_matrix) for cross-track
+            # methodological consistency, but implemented locally here so
+            # this module does not depend on Kavya's file:
+            #   - sample N×N SYMMETRIC velocity matrix (V[i,j] = V[j,i]):
+            #     biologically each axon has one velocity in both directions
+            #   - q (Gamma scale) = v_mean / (p − 1) so mode of distribution is v_mean
+            #   - rejection truncation to [v_lo, v_hi]
             D = self.p.get('distance_matrix')
             if D is None:
                 raise ValueError(
@@ -265,12 +255,18 @@ class NextGenNetwork:
             p_shape = self.p.get('velocity_gamma_shape', 5.0)
             v_lo = self.p.get('velocity_truncate_low', 1.0)
             v_hi = self.p.get('velocity_truncate_high', 60.0)
-            # Scale q chosen so E[v] = p * q = v_mean
-            q_scale = v_mean / p_shape
+            q_scale = v_mean / (p_shape - 1) if p_shape > 1 else v_mean / p_shape
 
             rng = np.random.default_rng(seed)
-            velocities = rng.gamma(p_shape, q_scale, size=self.M)
-            velocities = np.clip(velocities, v_lo, v_hi)
+            V_sym = np.zeros((self.N, self.N))
+            for n in range(self.N):
+                for j in range(n + 1, self.N):
+                    v = 0.0
+                    while not (v_lo <= v <= v_hi):
+                        v = rng.gamma(shape=p_shape, scale=q_scale)
+                    V_sym[n, j] = v
+                    V_sym[j, n] = v
+            velocities = np.array([V_sym[j, i] for (j, i) in self.edges])
 
             self.delays = np.array([
                 D[i, j] / (vel * 1000.0)               # mm / (m/s × 1000) = s
@@ -279,37 +275,14 @@ class NextGenNetwork:
             # Stash realised per-edge velocities for inspection
             self._gamma_velocities = velocities
 
-        elif mode == 'gamma':
-            # Pure Gamma delays (no distance/velocity factorisation)
-            k = self.p.get('delay_gamma_shape', 5.0)
-            theta = fixed_delay / k                    # mean = k * theta
-            rng = np.random.default_rng(seed)
-            self.delays = rng.gamma(k, theta, size=self.M)
-
-        elif mode == 'distance':
-            # Legacy: graph hops, dimensionally weak
-            G = self.network.network
-            sp = dict(nx.shortest_path_length(G))
-            self.delays = np.array([
-                max(sp[j][i], 1) / v_mean
-                for (j, i) in self.edges
-            ])
-
-        elif mode == 'heterogeneous_velocity':
-            # Legacy: graph hops × Normal velocity
-            G = self.network.network
-            sp = dict(nx.shortest_path_length(G))
-            sigma_v = self.p.get('velocity_std', 2.0)
-            rng = np.random.default_rng(seed)
-            velocities = rng.normal(v_mean, sigma_v, size=self.M)
-            velocities = np.maximum(velocities, 1.0)
-            self.delays = np.array([
-                max(sp[j][i], 1) / vel
-                for (j, i), vel in zip(self.edges, velocities)
-            ])
-
+        # Legacy delay modes ('gamma', 'distance', 'heterogeneous_velocity')
+        # were graph-hop based and dimensionally weak. Removed in 2026-04-28
+        # cleanup — only the three production modes above are supported now.
         else:
-            raise ValueError(f"Unknown delay_mode: {mode}")
+            raise ValueError(
+                f"Unknown delay_mode: '{mode}'. "
+                f"Supported modes: 'constant', 'matrix', 'matrix_gamma_velocity'."
+            )
 
         # Universal floor to prevent zero/negative delays (jitcdde requires > 0)
         self.delays = np.maximum(np.array(self.delays, dtype=float), 1e-4)
@@ -359,6 +332,7 @@ class NextGenNetwork:
         v_syn_ij = p['v_syn_ij']
         alpha_ij = p['alpha_ij']
         k_ext = p['k_ext']
+
 
         # ---- Node equations (12 per node) ----
         for node in range(N):
@@ -783,51 +757,3 @@ class NextGenNetwork:
             FC = np.arctanh(np.clip(FC, 0.0, 1.0 - 1e-9))
             np.fill_diagonal(FC, 0.0)            # ENIGMA convention
         return FC
-
-    def compute_dynamic_PLV(self, window_sec=10.0, overlap=0.9,
-                            population='E', t_start=None):
-        """Dynamic FC via sliding-window PLV.
-
-        Forrester Fig 7 setup: 10 s window, 90% overlap.
-
-        Parameters
-        ----------
-        window_sec : float
-        overlap : float in [0, 1)
-        population : 'E' or 'I'
-        t_start : float or None. Default 20% of total.
-
-        Returns
-        -------
-        dFC : ndarray (n_windows, N, N).
-        t_centers : ndarray (n_windows,). Window centre times (s).
-        """
-        Z_E, Z_I = self.compute_Z()
-        Z = Z_E if population == 'E' else Z_I
-        t = self.time_array
-
-        if t_start is None:
-            t_start = t[-1] * 0.2
-        dt = t[1] - t[0]
-        win_samples = int(window_sec / dt)
-        step_samples = int(win_samples * (1 - overlap))
-        if step_samples < 1:
-            step_samples = 1
-
-        start_idx = int(t_start / dt)
-        end_idx = len(t)
-
-        windows = []
-        centers = []
-        idx = start_idx
-        while idx + win_samples <= end_idx:
-            Z_win = Z[:, idx:idx + win_samples]      # (N, win_samples)
-            # Vectorised PLV via matrix product (same as compute_PLV)
-            exp_itheta = np.exp(1j * np.angle(Z_win))
-            PLV_win = np.abs(exp_itheta @ exp_itheta.conj().T) / win_samples
-            np.fill_diagonal(PLV_win, 1.0)
-            windows.append(PLV_win)
-            centers.append(t[idx + win_samples // 2])
-            idx += step_samples
-
-        return np.array(windows), np.array(centers)
