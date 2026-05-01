@@ -94,29 +94,22 @@ def main():
     models = run_simulations(base_config_path, model_configs)
     
     # Set up plot
-    nrows = 4
-    fig, ax = plt.subplots(2, 2, figsize=(8, 8))
-    fig.suptitle("Network Topology Effects", fontsize=16)
-    
-    # Get parameter strings
-    param_strs = [
-        format_param_title(model_configs.iloc[i,:-1].to_dict())
-        for i in range(2)
-    ]
+    fig, ax = plt.subplots(1, 4, figsize=(12, 4))
+    # fig.suptitle("Network Topology Effects", fontsize=16)
     
     # Plot 4 network topologies
-    plot_trajectory_on_ax(ax[0, 0], 'Cycle', models[0])
-    plot_trajectory_on_ax(ax[0, 1], 'Path', models[1])
-    plot_trajectory_on_ax(ax[1, 0], 'Lattice', models[2])
-    plot_trajectory_on_ax(ax[1, 1], 'Complete', models[3])
+    plot_trajectory_on_ax(ax[0], 'Cycle', models[0])
+    plot_trajectory_on_ax(ax[1], 'Path', models[1])
+    plot_trajectory_on_ax(ax[2], 'Lattice', models[2])
+    plot_trajectory_on_ax(ax[3], 'Complete', models[3])
 
     # Formatting Trajectories
     # ax[0, 0].set_ylabel(f"Noise = {int(j1*100)}%")
     # ax[1, 0].set_ylabel(f"Noise = {int(j2*100)}%")
     # ax[2, 0].set_ylabel(f"k = {k}")
     # ax[3, 0].set_ylabel(f"'$\\rho$' = {rho}")
-    for i in range(2):
-        ax[1, i].set_xlabel("t")
+    for i in range(4):
+        ax[i].set_xlabel("t")
     
     plt.tight_layout()
     filepath = os.path.join(script_path, 'network_effects.png')
