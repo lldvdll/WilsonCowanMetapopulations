@@ -1,0 +1,39 @@
+---
+model_params:
+  mode: "wilson_cowan"
+  c_ee: 1  
+  c_ei: 1  
+  c_ie: -1 
+  c_ii: -1 
+  
+  # ZERO-DELAY TEST: Turn off all delays
+  tau_1: 0.0  
+  tau_2: 0.0  
+  rho: 0.0  
+  
+  beta: 10   
+  alpha: 0.6  
+  
+  # THRESHOLD FIX: Set to negative
+  P: -0.5  
+  Q: -0.5  
+  
+  T_e: 1  
+  T_i: 1  
+  k: 1  
+
+network_params:
+  topology: full    # Maximizes the number of connections (Degree = 15)
+  normalise: True   # We will toggle this in the Python script
+  self_delay: 0.25  
+  node_distance: 1  
+  signal_velocity: 2  
+  N: 16             # 16 nodes
+
+# ADDED: This block is required by metapopulation.py
+simulation:
+  duration: 20
+  dt: 0.1
+  initial_conditions:
+    E: 0.25
+    I: 0.75
