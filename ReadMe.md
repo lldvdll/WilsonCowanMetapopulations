@@ -6,6 +6,7 @@
 - ref: any references, notes, etc
 - scrap: a messy playground. Anything which doesn't fit structure belongs here. Commit it if it's useful
 - src: where all the good code goes. the Metapopulation package
+- submission: contains report and scaling document
 
 ## Files
 - ReadMe.md - add anything a contributor needs to know here

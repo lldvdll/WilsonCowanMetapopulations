@@ -95,7 +95,7 @@ def main():
     # Set up plot
 
     fig, ax = plt.subplots(2, 3, figsize=(16, 8))
-    fig.suptitle("Reproduction of Fig. 2", fontsize=16)
+    # fig.suptitle("Reproduction of Fig. 2", fontsize=16)
     
     # EXPLICITLY Map specific models to specific 2D coordinates
     plot_trajectory_on_ax(ax[0, 0], "(a)", models[0])
@@ -113,6 +113,8 @@ def main():
         ax[1, i].set_xlabel("t")
     
     plt.tight_layout()
+    filepath = os.path.join(script_path, 'reproduce_fig2.png')
+    plt.savefig(filepath, dpi=300)
     plt.show()
 
 if __name__ == "__main__":

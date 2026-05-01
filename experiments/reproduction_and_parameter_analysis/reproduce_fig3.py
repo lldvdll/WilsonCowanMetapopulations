@@ -83,7 +83,7 @@ def main():
     # Set up plot
     nrows = 4
     fig, ax = plt.subplots(nrows, 2, figsize=(12, 16))
-    fig.suptitle("Parameter search and initial conditions", fontsize=16)
+    # fig.suptitle("Parameter search and initial conditions", fontsize=16)
     
     # Get parameter strings
     param_strs = [
