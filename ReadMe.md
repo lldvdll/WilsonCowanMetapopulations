@@ -43,6 +43,20 @@ model.initialise_model()  # Set up the wilson-cowan model (not yet implemented) 
 model.run_simulation(duration=1000, dt=0.1)  # Run the simulation - generates trajectories
 model.plot_trajectories()  # Plot the Excitatory (blue) and Inhibitory (black) trajectories for each node
 ```
+## Distance-based Delays, Heterogenous Delays & Multiple Sclerosis Progression
+This module extends the uniform inter-node delay assumption of Conti and Van Gorder (2019) by introducing biologically motivated delay structures across 2 regimes: distance-based, and heterogeneous. Inter-node delays are replaced by a structured delay matrix where transmission time between nodes is proportional to graph shortest-path distance and, in the heterogeneous condition, modulated by per-edge conduction velocities sampled from a Gamma distribution following Atay and Hutt (2006).
+
+These delay regimes are applied as a case study in Multiple Sclerosis progression across four stages, from healthy baseline through early and established progressive demyelination to severe axonal loss. Each stage modifies the conduction velocity distribution and intra-node delays to reflect the pathological changes in white matter at that phase of disease.
+
+### Files:
+- `src/delays.py` added distance and heterogenous delays matrix
+- `src/ms_progression.py` - MS staging parameters and edge removal
+- `experiments/distance_delays.ipynb` - distance-based delay experiment
+- `experiments/heterogenous_delays.ipynb` - heterogeneous delay experiment
+- `experiments/MS.ipynb` - MS disease progression experiment
+- `experiments/distance_delays.yaml` - model configuration
+
+
 
 ## Next-Generation Neural Mass Model (NG NMM) track — Ningqian
 
