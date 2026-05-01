@@ -107,3 +107,13 @@ $\kappa_v$ scaled from Forrester defaults; γ-velocity delays):
    - `hcp_labels_68.npy`    — DK68 region labels
    - `hcp_centroids_68.npy` — abagen volumetric centroids (mm)
    - `hcp_dist_68.npy`      — pairwise Euclidean distances (mm)
+
+
+   ### Paper reproduction and parameter exploration code
+   experiments/reproduction_and_parameter_analysis/
+   interactive_wc.py - Interactive Wilson-Cowan simulator with parameter sliders
+   parameter_reference.csv - Parameters used to create figures
+   reproduce_fig2 - Standalone script creates Fig 1 in report
+   reproduce_fig3 - Standalone script creates Fig 2 in report
+   network_effects - Standalone script creates Fig 3 in report
+   delay_effects - Standalone script creates Fig 4 in report
