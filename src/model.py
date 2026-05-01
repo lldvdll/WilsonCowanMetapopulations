@@ -103,7 +103,7 @@ class Model:
 
         # Without jitter, network is symmetric so is trivially synchronous
         if jitter is not None:
-            rng = np.random.default_rng()
+            rng = np.random.default_rng(seed=0)
             initial = initial + rng.normal(0.0, jitter, size=2*N)
             
         self.initial_conditions = initial
